@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "2026-08-01-yqxc",
+    "file": "photos/2026-08-01-yqxc.jpg",
+    "thumb": "photos/thumbs/2026-08-01-yqxc.jpg",
+    "lat": 51.525434,
+    "lng": -0.135318,
+    "locationSource": "manual",
+    "borough": "Camden",
+    "flavour": "Berry Cherry Limeade",
+    "caption": "Midnight at Euston Square Station",
+    "spottedAt": "2026-07-31T23:24:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-01T23:23:51.857Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  }
+]
