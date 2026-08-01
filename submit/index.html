@@ -107,33 +107,29 @@
 
   <h2 class="subhead">Publishing</h2>
   <p class="hint">
-    Leave this blank to just save photos on your phone — everything works, and
-    they show up on the site when you open it on this device. Fill it in when
-    the GitHub repo exists and you want them live for everyone.
+    Leave the passcode blank to just save photos on your phone — everything
+    still works, and they show on the site when you open it on this device.
+    Add it to publish for everyone.
   </p>
 
   <div class="field">
-    <label class="field__label" for="ghOwner">GitHub user or org</label>
-    <input type="text" id="ghOwner" placeholder="your-username" autocapitalize="off" autocorrect="off" spellcheck="false">
-  </div>
-  <div class="field">
-    <label class="field__label" for="ghRepo">Repository</label>
-    <input type="text" id="ghRepo" placeholder="buzz-on-the-street" autocapitalize="off" autocorrect="off" spellcheck="false">
-  </div>
-  <div class="field">
-    <label class="field__label" for="ghBranch">Branch</label>
-    <input type="text" id="ghBranch" placeholder="main" autocapitalize="off" autocorrect="off" spellcheck="false">
-  </div>
-  <div class="field">
-    <label class="field__label" for="ghToken">Access token</label>
-    <input type="password" id="ghToken" placeholder="github_pat_…" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <label class="field__label" for="passcode">Passcode</label>
+    <input type="password" id="passcode" placeholder="ask whoever runs the site" autocapitalize="off" autocorrect="off" spellcheck="false">
     <p class="hint">
-      A fine-grained token scoped to that one repository, with
-      <b>Contents: read and write</b> and nothing else. It is stored only on this
-      phone. Anyone with your unlocked phone could commit buzzball photos —
-      that's the trade for having no server. Give it a 1-year expiry.
+      Shared with everyone who submits. It only lets you <b>add a sighting</b> —
+      nothing else. If it ever leaks it can be changed in one place without
+      touching anyone's phone.
     </p>
   </div>
+
+  <details class="advanced">
+    <summary>Advanced</summary>
+    <div class="field">
+      <label class="field__label" for="endpoint">Submission endpoint</label>
+      <input type="text" id="endpoint" placeholder="https://buzz-submit.….workers.dev/submit" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <p class="hint">Comes from the site by default. Only set this if you're testing your own.</p>
+    </div>
+  </details>
 
   <div class="actions">
     <button class="btn btn--primary" id="btnSaveSettings" type="button">Save settings</button>

@@ -83,12 +83,22 @@ the current-location button and the ability to install the app. Both come back
 the moment the site is on GitHub Pages, which is HTTPS by default. A tunnel
 (`cloudflared tunnel --url http://localhost:8777`) also works for testing.
 
-### The token
+### How submitting is authorised
 
-A fine-grained personal access token, scoped to this one repository, with
-**Contents: read and write** and nothing else. It lives in `localStorage` on the
-phone. Anyone with your unlocked phone could commit buzzball photos — that's the
-trade for having no server. Give it a 1-year expiry and rotate it.
+Submitters hold a **shared passcode**, not a GitHub token. The token lives in a
+Cloudflare Worker ([`worker/`](worker/)) that does the commit; nothing on any
+phone can do more than add a sighting.
+
+This matters because the obvious alternative doesn't work: a GitHub token that
+can write to the repo can also delete it, and putting one in `localStorage` on
+a friend's phone hands them that power — and anyone who reads it off the device.
+Fine for two people who own the project, not for a group.
+
+Rotating the passcode is one command and takes effect immediately, without
+anyone reinstalling anything. See [`worker/README.md`](worker/README.md).
+
+A new submitter needs: the link, their name, and the passcode. Nothing else —
+no GitHub account, no install, no setup call.
 
 ## The data
 

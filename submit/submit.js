@@ -44,12 +44,16 @@ let settings = loadSettings();
 // ────────────────────────────────────────────────────────────────── boot
 
 (async function init() {
-  const [boroughs, flavours] = await Promise.all([
+  const [boroughs, flavours, config] = await Promise.all([
     fetch('../data/boroughs.geojson').then(r => r.json()),
     fetch('../data/flavours.json').then(r => r.json()).catch(() => []),
+    fetch('config.json').then(r => r.json()).catch(() => ({})),
   ]);
   state.boroughs = boroughs;
   state.flavours = flavours;
+  // Shipped with the site so a new submitter only ever types a name and a
+  // passcode — they never need to know the endpoint exists.
+  state.defaultEndpoint = config.endpoint || '';
 
   fillBoroughSelect();
   fillFlavourSelect();
@@ -336,12 +340,14 @@ async function renderQueue() {
     renderQueue();
   }));
 
-  const ready = settings.token && settings.owner && settings.repo;
+  const ready = canPublish();
   $('#queueActions').hidden = false;
   $('#btnPublish').disabled = !ready;
   $('#publishHint').textContent = ready
-    ? `Commits everything to ${settings.owner}/${settings.repo} in one go.`
-    : 'Add your GitHub details in settings to publish.';
+    ? 'Publishes everything above in one go.'
+    : endpoint()
+      ? 'Add the passcode in settings to publish.'
+      : 'No submission endpoint configured yet.';
 }
 
 async function refreshQueueCount() {
@@ -354,26 +360,12 @@ async function refreshQueueCount() {
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
   ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
-// ─────────────────────────────────────────────────────── GitHub publish
-
-const api = (path, opts = {}) => fetch(`https://api.github.com${path}`, {
-  ...opts,
-  headers: {
-    Accept: 'application/vnd.github+json',
-    Authorization: `Bearer ${settings.token}`,
-    'X-GitHub-Api-Version': '2022-11-28',
-    ...(opts.body ? { 'Content-Type': 'application/json' } : {}),
-    ...opts.headers,
-  },
-}).then(async r => {
-  if (!r.ok) {
-    const body = await r.text();
-    const err = new Error(`GitHub ${r.status}: ${body.slice(0, 200)}`);
-    err.status = r.status;
-    throw err;
-  }
-  return r.status === 204 ? null : r.json();
-});
+// ─────────────────────────────────────────────────────────────── publish
+//
+// The client no longer talks to GitHub. It POSTs to a small Cloudflare Worker
+// that holds the GitHub token server-side, so nothing on any phone can do more
+// than add a sighting. The passcode is the only credential a submitter needs,
+// and rotating it is one command — no reinstalling anything.
 
 const blobToBase64 = blob => new Promise((res, rej) => {
   const fr = new FileReader();
@@ -382,135 +374,86 @@ const blobToBase64 = blob => new Promise((res, rej) => {
   fr.readAsDataURL(blob);
 });
 
-/** Read a text file from the repo, or null if it isn't there yet. */
-async function readRepoText(path) {
-  const { owner, repo, branch } = settings;
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch || 'main'}`;
-  const r = await fetch(url, {
-    headers: {
-      Accept: 'application/vnd.github.raw',
-      Authorization: `Bearer ${settings.token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
+const endpoint = () => (settings.endpoint || state.defaultEndpoint || '').trim();
+const canPublish = () => Boolean(settings.passcode && endpoint());
+
+async function postSightings(sightings) {
+  const r = await fetch(endpoint(), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passcode: settings.passcode, sightings }),
   });
-  if (r.status === 404) return null;
-  if (!r.ok) throw new Error(`GitHub ${r.status} reading ${path}`);
-  return r.text();
+  let data = {};
+  try { data = await r.json(); } catch {}
+  if (!r.ok) {
+    const e = new Error(data.error || `Endpoint returned ${r.status}`);
+    e.status = r.status;
+    throw e;
+  }
+  return data;
 }
 
-/**
- * Everything queued goes up as ONE commit: photos, thumbnails, the updated
- * photos.json and flavours.json together. Either the whole batch lands or
- * none of it does, so the site never references an image that isn't pushed.
- * If someone else pushed in the meantime the ref update is rejected and we
- * rebuild the commit on the new head rather than clobbering it.
- */
+/** The whole queue goes up in one request, which the Worker turns into a
+ *  single commit — so the site never references an image that isn't pushed. */
 async function publishAll() {
   const drafts = await allDrafts();
   if (!drafts.length) return;
 
-  const { owner, repo } = settings;
-  const branch = settings.branch || 'main';
-  const base = `/repos/${owner}/${repo}`;
-
   $('#btnPublish').disabled = true;
+  $('#publishHint').textContent = `Publishing ${drafts.length}…`;
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      $('#publishHint').textContent = `Publishing ${drafts.length}…`;
-
-      const ref = await api(`${base}/git/ref/heads/${branch}`);
-      const headSha = ref.object.sha;
-      const headCommit = await api(`${base}/git/commits/${headSha}`);
-
-      const existing = JSON.parse((await readRepoText('data/photos.json')) || '[]');
-      const knownFlavours = JSON.parse((await readRepoText('data/flavours.json')) || '[]');
-
-      const tree = [];
-      for (const d of drafts) {
-        const [fullB64, thumbB64] = await Promise.all([
-          blobToBase64(d.full), blobToBase64(d.thumb),
-        ]);
-        const [fullBlob, thumbBlob] = await Promise.all([
-          api(`${base}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: fullB64, encoding: 'base64' }) }),
-          api(`${base}/git/blobs`, { method: 'POST', body: JSON.stringify({ content: thumbB64, encoding: 'base64' }) }),
-        ]);
-        tree.push({ path: d.meta.file, mode: '100644', type: 'blob', sha: fullBlob.sha });
-        tree.push({ path: d.meta.thumb, mode: '100644', type: 'blob', sha: thumbBlob.sha });
-      }
-
-      // drop any ids already present, so a retry can't double-add
-      const ids = new Set(drafts.map(d => d.id));
-      const merged = [...drafts.map(d => d.meta), ...existing.filter(p => !ids.has(p.id))]
-        .sort((a, b) => new Date(b.spottedAt) - new Date(a.spottedAt));
-      tree.push({
-        path: 'data/photos.json', mode: '100644', type: 'blob',
-        content: JSON.stringify(merged, null, 2) + '\n',
+  try {
+    // Explicit payload rather than spreading meta: meta.file/meta.thumb are
+    // repo *paths* while the wire fields are base64 *images*, and relying on
+    // one to silently overwrite the other is asking for trouble. The Worker
+    // rebuilds the paths from the id anyway, so they're not worth sending.
+    const sightings = [];
+    for (const d of drafts) {
+      const [full, thumb] = await Promise.all([blobToBase64(d.full), blobToBase64(d.thumb)]);
+      const m = d.meta;
+      sightings.push({
+        id: m.id,
+        lat: m.lat, lng: m.lng, locationSource: m.locationSource,
+        borough: m.borough, flavour: m.flavour, caption: m.caption,
+        spottedAt: m.spottedAt, spotter: m.spotter,
+        full, thumb,
       });
-
-      const allFlavours = [...new Set([...knownFlavours, ...drafts.map(d => d.meta.flavour)])];
-      if (allFlavours.length !== knownFlavours.length) {
-        tree.push({
-          path: 'data/flavours.json', mode: '100644', type: 'blob',
-          content: JSON.stringify(allFlavours, null, 2) + '\n',
-        });
-      }
-
-      const newTree = await api(`${base}/git/trees`, {
-        method: 'POST',
-        body: JSON.stringify({ base_tree: headCommit.tree.sha, tree }),
-      });
-
-      const msg = drafts.length === 1
-        ? `Add sighting: ${drafts[0].meta.flavour} in ${drafts[0].meta.borough || 'London'}`
-        : `Add ${drafts.length} sightings`;
-
-      const commit = await api(`${base}/git/commits`, {
-        method: 'POST',
-        body: JSON.stringify({ message: msg, tree: newTree.sha, parents: [headSha] }),
-      });
-
-      // no force: if head moved, this 422s and we rebuild on the new head
-      await api(`${base}/git/refs/heads/${branch}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ sha: commit.sha, force: false }),
-      });
-
-      for (const d of drafts) await deleteDraft(d.id);
-      await refreshQueueCount();
-      renderQueue();
-      toast(`Published ${drafts.length}. Live in about a minute.`);
-      return;
-
-    } catch (e) {
-      const raced = e.status === 422 || e.status === 409;
-      if (raced && attempt < 3) {
-        $('#publishHint').textContent = 'Someone else pushed — retrying…';
-        continue;
-      }
-      $('#btnPublish').disabled = false;
-      $('#publishHint').textContent = e.message;
-      toast('Publish failed — see the queue for why', 'bad');
-      return;
     }
+
+    const res = await postSightings(sightings);
+
+    for (const d of drafts) await deleteDraft(d.id);
+    await refreshQueueCount();
+    renderQueue();
+    toast(`Published ${res.published ?? drafts.length}. Live in about a minute.`);
+
+  } catch (e) {
+    $('#btnPublish').disabled = false;
+    $('#publishHint').textContent = e.status === 401
+      ? 'That passcode was rejected. Check it in settings.'
+      : e.message;
+    toast('Publish failed — see the queue for why', 'bad');
   }
 }
 
+/** Sends the passcode with an empty batch. The Worker checks the passcode
+ *  before it looks at the payload, so 400 "nothing to publish" means the
+ *  passcode was accepted and 401 means it wasn't. */
 async function testConnection() {
   readSettingsFromForm();
   const out = $('#testResult');
-  if (!settings.token || !settings.owner || !settings.repo) {
-    out.textContent = 'Fill in user, repository and token first.';
-    return;
-  }
+
+  if (!endpoint()) { out.textContent = 'No endpoint set yet.'; return; }
+  if (!settings.passcode) { out.textContent = 'Enter the passcode first.'; return; }
+
   out.textContent = 'Checking…';
   try {
-    const branch = settings.branch || 'main';
-    const repo = await api(`/repos/${settings.owner}/${settings.repo}`);
-    await api(`/repos/${settings.owner}/${settings.repo}/git/ref/heads/${branch}`);
-    out.textContent = `✓ ${repo.full_name}, branch ${branch}${repo.permissions?.push === false ? ' — but the token cannot write' : ' — token can write'}`;
+    await postSightings([]);
+    out.textContent = '✓ Connected.';
   } catch (e) {
-    out.textContent = '✗ ' + e.message;
+    if (e.status === 400) out.textContent = '✓ Passcode accepted — ready to publish.';
+    else if (e.status === 401) out.textContent = '✗ Wrong passcode.';
+    else out.textContent = '✗ ' + e.message;
   }
 }
 
@@ -526,19 +469,16 @@ function showPanel(which) {
 
 function hydrateSettings() {
   $('#spotter').value = settings.spotter || '';
-  $('#ghOwner').value = settings.owner || '';
-  $('#ghRepo').value = settings.repo || '';
-  $('#ghBranch').value = settings.branch || '';
-  $('#ghToken').value = settings.token || '';
+  $('#passcode').value = settings.passcode || '';
+  $('#endpoint').value = settings.endpoint || '';
+  $('#endpoint').placeholder = state.defaultEndpoint || 'not configured yet';
 }
 
 function readSettingsFromForm() {
   settings = {
     spotter: $('#spotter').value.trim(),
-    owner: $('#ghOwner').value.trim(),
-    repo: $('#ghRepo').value.trim(),
-    branch: $('#ghBranch').value.trim() || 'main',
-    token: $('#ghToken').value.trim(),
+    passcode: $('#passcode').value.trim(),
+    endpoint: $('#endpoint').value.trim(),
   };
   saveSettings(settings);
 }

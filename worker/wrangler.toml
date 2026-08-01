@@ -1,0 +1,15 @@
+name = "buzz-submit"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Public config. Secrets are NOT here — see the README:
+#   wrangler secret put GITHUB_TOKEN
+#   wrangler secret put PASSCODE
+[vars]
+GITHUB_OWNER = "h-rajpal"
+GITHUB_REPO = "buzz-on-the-street"
+GITHUB_BRANCH = "main"
+
+# Only these origins may call the endpoint from a browser. Add localhost while
+# testing; drop it once you're done.
+ALLOWED_ORIGINS = "https://h-rajpal.github.io,http://127.0.0.1:8777,http://localhost:8777"

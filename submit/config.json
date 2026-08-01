@@ -1,0 +1,4 @@
+{
+  "_comment": "Committed so friends only ever type a name and a passcode. Change this if the Worker is redeployed under a different name.",
+  "endpoint": "https://buzz-submit.h-rajpal.workers.dev/submit"
+}

@@ -3,6 +3,11 @@ Thumbs.db
 *.swp
 node_modules/
 
+# Cloudflare Worker: local secrets and build cache. NEVER commit .dev.vars —
+# it holds the GitHub token and the passcode in plain text.
+.dev.vars
+.wrangler/
+
 # Claude Code: local, machine-specific permission grants.
 # Shared project config (.claude/settings.json, CLAUDE.md) is meant to be
 # committed, so this ignores the one file rather than the whole directory.
