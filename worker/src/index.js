@@ -162,7 +162,7 @@ function validate(s, i) {
         thumb: `photos/thumbs/${id}.jpg`,
         lat: Math.round(lat * 1e6) / 1e6,
         lng: Math.round(lng * 1e6) / 1e6,
-        locationSource: ['exif', 'device', 'manual'].includes(s.locationSource)
+        locationSource: ['exif', 'device', 'search', 'manual'].includes(s.locationSource)
           ? s.locationSource : 'manual',
         borough: str(s.borough, LIMITS.borough),
         flavour,

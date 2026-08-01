@@ -44,8 +44,24 @@ IndexedDB on the device first, and the site merges those drafts in with
 with no repo, no token and no deploy. Publishing to GitHub is a separate,
 optional step that drains the queue.
 
-Flow: pick a photo → EXIF is read for date and GPS → place the pin → borough
-resolves by point-in-polygon → flavour, caption, time → save.
+Flow: pick a photo → EXIF is read for date and GPS → place the pin (search or
+drag) → borough resolves by point-in-polygon → flavour, caption, time → save.
+
+### Place search
+
+Type a shop, landmark or street and tap a result to drop the pin — far quicker
+than hunting for a road on a map.
+
+It uses **Photon** (`photon.komoot.io`), not Nominatim. That's not a
+preference: Nominatim's usage policy explicitly forbids this — *"you must not
+implement such a service on the client side using the API"* — whereas Photon is
+built for typeahead. Photon asks only that you be fair, so the box is
+**debounced at 450ms** with a 3-character minimum and a single in-flight
+request; typing "borough market" fires **one** request, not fourteen. Results
+are confined to a Greater London bounding box.
+
+If the service is down the field says so and you can still drag the pin — the
+search is a convenience, never a dependency.
 
 - **Resizing happens on the phone**: 1600px long edge at q0.82, plus a 400px
   thumbnail. This is what keeps hosting free. Re-encoding through a canvas also

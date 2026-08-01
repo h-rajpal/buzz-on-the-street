@@ -225,6 +225,81 @@ select { appearance: none; background-image: none; }
 }
 .advanced[open] summary { margin-bottom: .5rem; }
 
+/* ── Place search ────────────────────────────────────────────────────── */
+
+/* Leaflet's zoom controls sit at z-index 1000. Positioning the whole search
+   block above that makes the dropdown a stacking context that clears the map,
+   otherwise the +/- buttons punch through the first result. */
+.search { position: relative; z-index: 1200; margin-bottom: .5rem; }
+
+.search input { padding-right: 2.4rem; }
+
+.search__clear {
+  position: absolute;
+  top: 50%;
+  right: .5rem;
+  transform: translateY(-50%);
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: .25rem .4rem;
+  line-height: 1;
+}
+
+.search__results {
+  position: absolute;
+  z-index: 1;                    /* inside .search's stacking context */
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 16rem;
+  overflow-y: auto;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(43,42,40,.16);
+}
+.search__results[hidden] { display: none; }
+
+.search__results li + li { border-top: 1px solid var(--rule); }
+
+.search__results button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: .6rem .75rem;
+  font: inherit;
+  cursor: pointer;
+  color: var(--ink);
+}
+.search__results button:hover,
+.search__results button:focus { background: #f6f0e4; outline: none; }
+
+.search__main { display: block; font-size: .92rem; font-weight: 600; }
+.search__sub {
+  display: block;
+  font-size: .78rem;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search__status {
+  margin: .4rem 0 0;
+  font-size: .8rem;
+  color: var(--ink-muted);
+}
+.search__status[hidden] { display: none; }
+
 /* ── Map ─────────────────────────────────────────────────────────────── */
 
 .maprow { border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; }

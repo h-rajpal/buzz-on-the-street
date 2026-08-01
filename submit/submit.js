@@ -57,6 +57,7 @@ let settings = loadSettings();
 
   fillBoroughSelect();
   fillFlavourSelect();
+  initSearch();
   bindUI();
   hydrateSettings();
   await refreshQueueCount();
@@ -118,6 +119,125 @@ const toggleNewFlavour = () => {
   if (isNew) $('#newFlavour').focus();
 };
 
+// ────────────────────────────────────────────────────────── place search
+//
+// Photon, not Nominatim. Nominatim's usage policy explicitly forbids
+// client-side autocomplete ("you must not implement such a service on the
+// client side using the API"); Photon is built for typeahead and only asks
+// that you be fair. So: debounced, minimum 3 characters, one in-flight
+// request at a time, and results confined to a Greater London box.
+
+const PHOTON = 'https://photon.komoot.io/api/';
+const LONDON_BBOX = '-0.51,51.28,0.33,51.70';   // minLon,minLat,maxLon,maxLat
+const SEARCH_DEBOUNCE = 450;
+
+let searchTimer, searchAbort;
+
+function initSearch() {
+  const input = $('#placeSearch');
+
+  input.addEventListener('input', () => {
+    $('#searchClear').hidden = !input.value;
+    clearTimeout(searchTimer);
+    const q = input.value.trim();
+    if (q.length < 3) { hideResults(); return; }
+    searchTimer = setTimeout(() => runSearch(q), SEARCH_DEBOUNCE);
+  });
+
+  // Enter picks the first result rather than submitting anything
+  input.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    $('#searchResults').querySelector('button')?.click();
+  });
+
+  $('#searchClear').addEventListener('click', () => {
+    input.value = '';
+    $('#searchClear').hidden = true;
+    hideResults();
+    input.focus();
+  });
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.search')) hideResults();
+  });
+}
+
+function hideResults() {
+  $('#searchResults').hidden = true;
+  $('#searchStatus').hidden = true;
+  $('#placeSearch').setAttribute('aria-expanded', 'false');
+}
+
+const status = msg => {
+  $('#searchStatus').textContent = msg;
+  $('#searchStatus').hidden = false;
+};
+
+async function runSearch(q) {
+  searchAbort?.abort();                       // drop any stale request
+  searchAbort = new AbortController();
+
+  status('Searching…');
+  try {
+    const url = `${PHOTON}?q=${encodeURIComponent(q)}&limit=6&lang=en` +
+                `&bbox=${LONDON_BBOX}&lat=51.5074&lon=-0.1278`;
+    const r = await fetch(url, { signal: searchAbort.signal });
+    if (!r.ok) throw new Error(`search returned ${r.status}`);
+    const data = await r.json();
+    renderResults(data.features || []);
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    $('#searchResults').hidden = true;
+    status('Search is unavailable — drag the pin instead.');
+  }
+}
+
+/** Photon splits an address across properties; assemble something readable
+ *  without repeating the name in the subtitle. */
+function describe(props) {
+  const main = props.name
+    || [props.housenumber, props.street].filter(Boolean).join(' ')
+    || props.city
+    || 'Unnamed place';
+  const sub = [...new Set([
+    props.name ? [props.housenumber, props.street].filter(Boolean).join(' ') : null,
+    props.district, props.city, props.postcode,
+  ].filter(Boolean))].filter(s => s !== main).join(', ');
+  return { main, sub };
+}
+
+function renderResults(features) {
+  const list = $('#searchResults');
+  if (!features.length) {
+    list.hidden = true;
+    status('Nothing found. Try a postcode, or drag the pin.');
+    return;
+  }
+
+  $('#searchStatus').hidden = true;
+  list.replaceChildren(...features.map(f => {
+    const [lng, lat] = f.geometry.coordinates;
+    const { main, sub } = describe(f.properties);
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.innerHTML = `<span class="search__main">${esc(main)}</span>` +
+                    (sub ? `<span class="search__sub">${esc(sub)}</span>` : '');
+    btn.addEventListener('click', () => {
+      setLocation(lat, lng, 'search', true);
+      $('#placeSearch').value = main;
+      $('#searchClear').hidden = false;
+      hideResults();
+      $('#locHint').textContent = 'Pinned from search. Drag the pin to fine-tune it.';
+    });
+    li.appendChild(btn);
+    return li;
+  }));
+  list.hidden = false;
+  $('#placeSearch').setAttribute('aria-expanded', 'true');
+}
+
 // ───────────────────────────────────────────────────────────────── map
 
 function ensureMap() {
@@ -160,7 +280,10 @@ function setLocation(lat, lng, source, recentre = false) {
   if (recentre && state.map) state.map.setView([lat, lng], 16);
 
   const chip = $('#locSource');
-  chip.textContent = { exif: 'from photo', device: 'your location', manual: 'pin placed' }[source] || '—';
+  chip.textContent = {
+    exif: 'from photo', device: 'your location',
+    search: 'from search', manual: 'pin placed',
+  }[source] || '—';
   chip.dataset.kind = source;
 
   $('#borough').value = boroughAt(state.lng, state.lat);

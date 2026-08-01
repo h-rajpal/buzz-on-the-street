@@ -45,8 +45,13 @@ self.addEventListener('fetch', e => {
   const { request } = e;
   if (request.method !== 'GET') return;
 
+  // Never cache: the submission endpoint, map tiles, or place search. A stale
+  // geocode result would silently pin the wrong location.
   const url = new URL(request.url);
-  if (url.hostname === 'api.github.com' || url.hostname.endsWith('basemaps.cartocdn.com')) return;
+  if (url.hostname.endsWith('workers.dev') ||
+      url.hostname === 'api.github.com' ||
+      url.hostname === 'photon.komoot.io' ||
+      url.hostname.endsWith('basemaps.cartocdn.com')) return;
 
   e.respondWith(
     caches.match(request).then(hit => {

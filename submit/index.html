@@ -46,11 +46,21 @@
         <label class="field__label">Where you found it</label>
         <span class="chip" id="locSource">—</span>
       </div>
+      <div class="search">
+        <input type="text" id="placeSearch" placeholder="Search a shop, landmark or street"
+               autocomplete="off" autocorrect="off" autocapitalize="words"
+               enterkeyhint="search" role="combobox" aria-expanded="false"
+               aria-controls="searchResults" aria-autocomplete="list">
+        <button class="search__clear" id="searchClear" type="button" hidden aria-label="Clear search">✕</button>
+        <ul class="search__results" id="searchResults" role="listbox" hidden></ul>
+        <p class="search__status" id="searchStatus" hidden></p>
+      </div>
+
       <div class="maprow">
         <div id="map"></div>
         <button class="mapbtn" id="btnLocate" type="button">Use my current location</button>
       </div>
-      <p class="hint" id="locHint">Drag the pin to the exact spot.</p>
+      <p class="hint" id="locHint">Search above, or drag the pin to the exact spot.</p>
     </div>
 
     <div class="field">
