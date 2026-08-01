@@ -14,5 +14,21 @@
     "addedAt": "2026-08-01T23:23:51.857Z",
     "publishToInstagram": false,
     "instagramPostId": null
+  },
+  {
+    "id": "2026-07-31-ydul",
+    "file": "photos/2026-07-31-ydul.jpg",
+    "thumb": "photos/thumbs/2026-07-31-ydul.jpg",
+    "lat": 51.515552,
+    "lng": -0.127847,
+    "locationSource": "manual",
+    "borough": "Camden",
+    "flavour": "Strawberry 'Rita",
+    "caption": "Outside The Angel TCR",
+    "spottedAt": "2026-07-31T18:33:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-01T23:29:38.622Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
