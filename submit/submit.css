@@ -1,0 +1,319 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Submit app — same paper and ink as the site, but built for thumbs:
+   big tap targets, one column, 16px inputs so iOS doesn't zoom on focus.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+  --paper:     #fffbf4;
+  --card:      #fdf7ec;
+  --ink:       #2b2a28;
+  --ink-2:     #5c5a55;
+  --ink-muted: #8a877f;
+  --rule:      #e7e0d3;
+  --hairline:  rgba(43,42,40,.14);
+  --accent:    #eb6834;
+  --good:      #1baf7a;
+  --bad:       #c2402a;
+  --font: "Helvetica Neue", Helvetica, Inter, system-ui, -apple-system, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+/* A class that sets `display` outranks the UA's `[hidden] { display: none }`,
+   so .picker__inner{display:flex} and .picker__preview{display:block} both
+   ignored the attribute. Make hidden mean hidden. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; background: var(--paper); }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.45;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── Bar ─────────────────────────────────────────────────────────────── */
+
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 600;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: max(.6rem, env(safe-area-inset-top)) .85rem .6rem;
+  background: rgba(255,251,244,.94);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--rule);
+}
+
+.bar__back {
+  font-size: 1.35rem;
+  text-decoration: none;
+  color: var(--ink);
+  padding: .1rem .35rem;
+}
+
+.bar__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+}
+
+.bar__btn {
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: .32rem .7rem;
+  font: inherit;
+  font-size: .8rem;
+  color: var(--ink);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.bar__btn:active { background: #f4ecdd; }
+
+.badge {
+  min-width: 1.25rem;
+  padding: 0 .3rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: .72rem;
+  font-weight: 700;
+  text-align: center;
+}
+.badge[data-zero="1"] { background: var(--rule); color: var(--ink-muted); }
+
+/* ── Panels ──────────────────────────────────────────────────────────── */
+
+main { max-width: 620px; margin-inline: auto; }
+
+.panel { padding: 1rem .85rem 3rem; }
+
+.panel__intro { margin: 0 0 1rem; color: var(--ink-2); font-size: .9rem; }
+
+.subhead {
+  margin: 2rem 0 .5rem;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* ── Photo picker ────────────────────────────────────────────────────── */
+
+.picker {
+  display: block;
+  position: relative;
+  border: 1.5px dashed var(--hairline);
+  border-radius: 12px;
+  background: var(--card);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.picker__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .2rem;
+  aspect-ratio: 4 / 3;
+  text-align: center;
+}
+.picker__plus { font-size: 2rem; line-height: 1; color: var(--accent); }
+.picker__label { font-weight: 600; }
+.picker__hint { font-size: .82rem; color: var(--ink-muted); }
+
+.picker__preview {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+}
+
+.linkbtn {
+  display: block;
+  margin: .6rem auto 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: .82rem;
+  color: var(--ink-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ── Fields ──────────────────────────────────────────────────────────── */
+
+.field { margin-top: 1.5rem; }
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.field__label {
+  display: block;
+  margin-bottom: .4rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.opt { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--ink-muted); }
+
+input[type=text], input[type=password], input[type=datetime-local], select {
+  width: 100%;
+  padding: .7rem .75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 16px;              /* 16px or iOS zooms the page on focus */
+}
+input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+select { appearance: none; background-image: none; }
+
+.hint {
+  margin: .45rem 0 0;
+  font-size: .8rem;
+  color: var(--ink-muted);
+}
+.hint--center { text-align: center; }
+.hint b { color: var(--ink-2); }
+
+.chip {
+  font-size: .7rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: .1rem .5rem;
+  white-space: nowrap;
+}
+.chip[data-kind="exif"] { color: var(--good); border-color: var(--good); }
+.chip[data-kind="device"] { color: var(--accent); border-color: var(--accent); }
+
+.newflavour { margin-top: .5rem; }
+
+/* ── Map ─────────────────────────────────────────────────────────────── */
+
+.maprow { border: 1px solid var(--hairline); border-radius: 10px; overflow: hidden; }
+#map { height: 250px; background: #f2ede3; }
+
+.mapbtn {
+  display: block;
+  width: 100%;
+  padding: .6rem;
+  border: 0;
+  border-top: 1px solid var(--hairline);
+  background: var(--card);
+  font: inherit;
+  font-size: .85rem;
+  color: var(--ink);
+  cursor: pointer;
+}
+.mapbtn:active { background: #f4ecdd; }
+
+.leaflet-container { font-family: var(--font); }
+.pin-drop {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px #fff, 0 2px 8px rgba(0,0,0,.35);
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────── */
+
+.actions { margin-top: 2rem; }
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: .95rem;
+  margin-bottom: .6rem;
+  border: 1px solid var(--ink);
+  border-radius: 10px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn--primary { background: var(--ink); color: var(--paper); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+
+/* ── Queue ───────────────────────────────────────────────────────────── */
+
+.queue { list-style: none; margin: 0; padding: 0; }
+
+.qitem {
+  display: grid;
+  grid-template-columns: 62px 1fr auto;
+  gap: .75rem;
+  align-items: center;
+  padding: .7rem 0;
+  border-top: 1px solid var(--rule);
+}
+.qitem img {
+  width: 62px;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  border-radius: 6px;
+  display: block;
+}
+.qitem__main { min-width: 0; }
+.qitem__flavour { font-weight: 600; font-size: .92rem; }
+.qitem__where { font-size: .8rem; color: var(--ink-muted); }
+.qitem__state { font-size: .75rem; }
+.qitem__state[data-s="ok"]   { color: var(--good); }
+.qitem__state[data-s="fail"] { color: var(--bad); }
+
+.qdel {
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 1.1rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+  padding: .25rem .4rem;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 900;
+  max-width: min(90vw, 30rem);
+  padding: .7rem 1rem;
+  border-radius: 10px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: .88rem;
+  box-shadow: 0 10px 30px rgba(43,42,40,.3);
+}
+.toast[hidden] { display: none; }
+.toast[data-kind="bad"] { background: var(--bad); }

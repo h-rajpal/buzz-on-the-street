@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buzz on the Street — empty buzzballs, mapped</title>
+<meta name="description" content="Every empty BuzzBallz we've found on the streets of London, mapped and counted.">
+<meta name="theme-color" content="#fffbf4">
+<link rel="stylesheet" href="assets/vendor/leaflet.css">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ── Opening: editorial gallery with the name centred on the first screen ── -->
+<section class="opening">
+  <div class="gallery" id="openingGallery">
+    <!-- A grid item, not an overlay: it occupies the empty block of modules,
+         so it is centred in the whitespace by construction. Photos are
+         inserted before it, keeping :nth-child indices on the figures. -->
+    <div class="opening__title" id="openingTitle">
+      <h1 class="wordmark">Buzz on the Street</h1>
+    </div>
+  </div>
+
+  <!-- Below the collage, on clean paper: small grey type over photographs is
+       unreadable, and the reference has the title standing on its own. -->
+  <p class="opening__meta">
+    <span><b id="statTotal">–</b> found</span>
+    <span><b id="statBoroughs">–</b> of 33 boroughs</span>
+    <span>London, ongoing</span>
+    <span class="meta-draft" id="draftNote" hidden></span>
+  </p>
+</section>
+
+<main id="main">
+
+  <!-- ── Map ──────────────────────────────────────────────────────────── -->
+  <section class="section" id="mapSection">
+    <div class="section__head">
+      <h2 class="section__title">Where they turn up</h2>
+      <p class="section__sub">
+        Every empty we've found, pinned where we found it.
+        Hover a pin for the photo — boroughs are shaded by how many we've spotted there.
+      </p>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map" role="application" aria-label="Map of buzzball sightings across London"></div>
+      <div class="map-legend" aria-hidden="true">
+        <span class="map-legend__label">fewer</span>
+        <span class="map-legend__ramp"></span>
+        <span class="map-legend__label">more</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Leaderboards ─────────────────────────────────────────────────── -->
+  <section class="section" id="boardsSection">
+    <div class="section__head">
+      <h2 class="section__title">The tallies</h2>
+      <p class="section__sub">Counts across every sighting to date.</p>
+    </div>
+
+    <div class="boards">
+      <article class="board" style="--hue: var(--c-boroughs)">
+        <h3 class="board__title">Boroughs</h3>
+        <ol class="board__list" id="boardBoroughs"></ol>
+        <button class="board__more" type="button" hidden>Show all</button>
+      </article>
+
+      <article class="board" style="--hue: var(--c-flavours)">
+        <h3 class="board__title">Flavours</h3>
+        <ol class="board__list" id="boardFlavours"></ol>
+        <button class="board__more" type="button" hidden>Show all</button>
+      </article>
+
+      <article class="board" style="--hue: var(--c-spotters)">
+        <h3 class="board__title">Spotters</h3>
+        <ol class="board__list" id="boardSpotters"></ol>
+        <button class="board__more" type="button" hidden>Show all</button>
+      </article>
+    </div>
+  </section>
+
+</main>
+
+<footer class="colophon">
+  <p class="colophon__word">Buzz on the Street</p>
+  <p class="colophon__note">
+    Found one? <a href="submit/">Add it</a>.
+    Photos by us, on foot, across London.
+  </p>
+</footer>
+
+<!-- ── Lightbox ──────────────────────────────────────────────────────────── -->
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" id="lightboxClose" type="button" aria-label="Close">&times;</button>
+  <figure class="lightbox__fig">
+    <img id="lightboxImg" alt="">
+    <figcaption id="lightboxCap"></figcaption>
+  </figure>
+</div>
+
+<script src="assets/vendor/leaflet.js"></script>
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>

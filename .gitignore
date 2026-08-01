@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+*.swp
+node_modules/
+
+# Claude Code: local, machine-specific permission grants.
+# Shared project config (.claude/settings.json, CLAUDE.md) is meant to be
+# committed, so this ignores the one file rather than the whole directory.
+.claude/settings.local.json

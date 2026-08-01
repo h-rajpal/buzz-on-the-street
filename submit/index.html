@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Add a sighting — Buzz on the Street</title>
+<meta name="theme-color" content="#fffbf4">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Buzz">
+<link rel="stylesheet" href="../assets/vendor/leaflet.css">
+<link rel="stylesheet" href="submit.css">
+</head>
+<body>
+
+<header class="bar">
+  <a class="bar__back" href="../" aria-label="Back to the site">←</a>
+  <h1 class="bar__title">Add a sighting</h1>
+  <button class="bar__btn" id="btnQueue" type="button">
+    Queue <span class="badge" id="queueCount">0</span>
+  </button>
+  <button class="bar__btn" id="btnSettings" type="button" aria-label="Settings">⚙</button>
+</header>
+
+<main>
+
+<!-- ── Compose ─────────────────────────────────────────────────────────── -->
+<section class="panel" id="panelCompose">
+
+  <label class="picker" id="picker">
+    <input type="file" id="file" accept="image/*" hidden>
+    <div class="picker__inner" id="pickerInner">
+      <span class="picker__plus">＋</span>
+      <span class="picker__label">Choose a photo</span>
+      <span class="picker__hint">From your camera roll</span>
+    </div>
+    <img class="picker__preview" id="preview" alt="" hidden>
+  </label>
+  <button class="linkbtn" id="btnClearPhoto" type="button" hidden>Choose a different photo</button>
+
+  <div id="form" hidden>
+
+    <div class="field">
+      <div class="field__head">
+        <label class="field__label">Where you found it</label>
+        <span class="chip" id="locSource">—</span>
+      </div>
+      <div class="maprow">
+        <div id="map"></div>
+        <button class="mapbtn" id="btnLocate" type="button">Use my current location</button>
+      </div>
+      <p class="hint" id="locHint">Drag the pin to the exact spot.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="borough">Borough</label>
+      <select id="borough"></select>
+      <p class="hint">Filled in from the pin. Override it if it looks wrong.</p>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="flavour">Flavour</label>
+      <select id="flavour"></select>
+      <div class="newflavour" id="newFlavourWrap" hidden>
+        <input type="text" id="newFlavour" placeholder="Name the new flavour" autocapitalize="words">
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="caption">Caption <span class="opt">optional</span></label>
+      <input type="text" id="caption" placeholder="outside the chicken shop" autocapitalize="sentences">
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="spottedAt">When</label>
+      <input type="datetime-local" id="spottedAt">
+      <p class="hint" id="dateHint"></p>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn--primary" id="btnSave" type="button">Save sighting</button>
+      <p class="hint hint--center">Saved to this phone. Publish to the site from the queue.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── Queue ───────────────────────────────────────────────────────────── -->
+<section class="panel" id="panelQueue" hidden>
+  <p class="panel__intro" id="queueIntro"></p>
+  <ul class="queue" id="queueList"></ul>
+  <div class="actions" id="queueActions" hidden>
+    <button class="btn btn--primary" id="btnPublish" type="button">Publish to the site</button>
+    <p class="hint hint--center" id="publishHint"></p>
+  </div>
+</section>
+
+<!-- ── Settings ────────────────────────────────────────────────────────── -->
+<section class="panel" id="panelSettings" hidden>
+
+  <div class="field">
+    <label class="field__label" for="spotter">Who are you?</label>
+    <input type="text" id="spotter" placeholder="e.g. H" autocapitalize="words">
+    <p class="hint">Recorded with each sighting and shown on the Spotters board.</p>
+  </div>
+
+  <h2 class="subhead">Publishing</h2>
+  <p class="hint">
+    Leave this blank to just save photos on your phone — everything works, and
+    they show up on the site when you open it on this device. Fill it in when
+    the GitHub repo exists and you want them live for everyone.
+  </p>
+
+  <div class="field">
+    <label class="field__label" for="ghOwner">GitHub user or org</label>
+    <input type="text" id="ghOwner" placeholder="your-username" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="field">
+    <label class="field__label" for="ghRepo">Repository</label>
+    <input type="text" id="ghRepo" placeholder="buzz-on-the-street" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="field">
+    <label class="field__label" for="ghBranch">Branch</label>
+    <input type="text" id="ghBranch" placeholder="main" autocapitalize="off" autocorrect="off" spellcheck="false">
+  </div>
+  <div class="field">
+    <label class="field__label" for="ghToken">Access token</label>
+    <input type="password" id="ghToken" placeholder="github_pat_…" autocapitalize="off" autocorrect="off" spellcheck="false">
+    <p class="hint">
+      A fine-grained token scoped to that one repository, with
+      <b>Contents: read and write</b> and nothing else. It is stored only on this
+      phone. Anyone with your unlocked phone could commit buzzball photos —
+      that's the trade for having no server. Give it a 1-year expiry.
+    </p>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn--primary" id="btnSaveSettings" type="button">Save settings</button>
+    <button class="btn" id="btnTest" type="button">Test connection</button>
+    <p class="hint hint--center" id="testResult"></p>
+  </div>
+</section>
+
+</main>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="../assets/vendor/leaflet.js"></script>
+<script src="../assets/vendor/exifr.js"></script>
+<script type="module" src="submit.js"></script>
+</body>
+</html>

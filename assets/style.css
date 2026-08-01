@@ -1,0 +1,495 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   Buzz on the Street
+   Warm paper, charcoal ink, editorial spacing. One continuous scroll —
+   no fixed header, nothing pinned to the viewport.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+
+  /* paper & ink */
+  --paper:      #fffbf4;
+  --ink:        #2b2a28;      /* charcoal */
+  --ink-2:      #5c5a55;
+  --ink-muted:  #8a877f;
+  --rule:       #e7e0d3;
+  --hairline:   rgba(43,42,40,.13);
+
+  /* chart hues — validated all-pairs against #fffbf4 (CVD ΔE 9.2, normal 24.0).
+     Aqua is 2.73:1, under the 3:1 mark, so every row carries a visible count
+     as the relief channel. Don't remove those numbers. */
+  --c-boroughs: #2a78d6;      /* also the map choropleth hue */
+  --c-flavours: #eb6834;      /* also the map pins */
+  --c-spotters: #1baf7a;
+
+  /* sequential blue ramp, light→dark = low→high */
+  --seq-1: #cde2fb;
+  --seq-2: #9ec5f4;
+  --seq-3: #5598e7;
+  --seq-4: #2a78d6;
+  --seq-5: #1c5cab;
+
+  --gutter: clamp(1.25rem, 5vw, 4.5rem);
+  --maxw:   1280px;
+  --g:      clamp(8px, 0.85vw, 13px);   /* the one grid gutter, both axes */
+
+  /* classic grotesque — Helvetica Neue where it exists, graceful fallbacks */
+  --font: "Helvetica Neue", Helvetica, Inter, system-ui, -apple-system, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+a { color: inherit; }
+
+/* ── Opening ────────────────────────────────────────────────────────────
+   A Swiss modular grid. The single rule everything follows:
+
+       row height = column width
+
+   so the module is square and vertical rhythm is identical to horizontal
+   rather than merely similar. Whitespace is never eyeballed — it is always
+   a whole empty module:
+
+       between neighbours across  →  one empty COLUMN
+       between bands down         →  one empty ROW
+
+   Both measure exactly one module + two gutters, so the page breathes the
+   same amount in both directions. Nine photos, three bands of three.
+
+   100cqw is the .opening content box, which is why the container query is
+   on the parent: a container cannot query itself.                        */
+
+.opening {
+  container-type: inline-size;
+  padding: 0 0 clamp(3rem, 9vh, 6.5rem);
+  overflow: hidden;                /* lets the top row bleed off the edge */
+}
+
+/* Every photo is a grid item in the SAME row, pinned to the top of it and
+   pushed down by a whole number of modules. That's what makes a scatter that
+   is still aligned: x comes from the 12 columns, y from a multiple of --u.
+   Overlaps are deliberate — images are allowed to sit over each other, and
+   the title over them. */
+/* 24 columns, not 12. In the reference each photo is only ~10% of the viewport
+   wide; on a 12-column grid the narrowest possible image is 8%+ and they
+   collide into a wall. A finer grid is what buys the cream between them. */
+.gallery {
+  --cols: 24;
+  --u: calc((100cqw - 23 * var(--g)) / 24 + var(--g));   /* one module pitch */
+  display: grid;
+  grid-template-columns: repeat(24, 1fr);
+  column-gap: var(--g);
+}
+
+.gallery > * {
+  grid-row: 1;                     /* one row; --y does the vertical work */
+  align-self: start;
+  /* Must be the shorthand: a `margin: 0` on .gallery figure would be more
+     specific than a longhand here and would silently zero every offset. */
+  margin: calc(var(--y, 0) * var(--u)) 0 0;
+}
+
+.gallery figure {
+  aspect-ratio: 4 / 5;             /* Instagram portrait, every one of them */
+  overflow: hidden;
+  background: #efe9dd;
+}
+
+.gallery img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: opacity .25s ease;
+}
+.gallery img:hover { opacity: .84; }
+
+/* The scatter: five loose vertical stacks across 24 columns, each stack
+   starting at a different --y so nothing lines up in a row. Column lines run
+   1–25 for 24 tracks; ending at 26 silently adds a 25th implicit column.
+   An empty column is left between stacks, and two photos start at --y:-1 so
+   the top edge bleeds off the page. */
+
+/* stack 1 — cols 1–5 */
+.gallery figure:nth-child(1)  { grid-column: 1 / 5;   --y: 0; }
+.gallery figure:nth-child(2)  { grid-column: 1 / 4;   --y: 6; }
+.gallery figure:nth-child(3)  { grid-column: 2 / 6;   --y: 11; }
+/* stack 2 — cols 5–9 */
+.gallery figure:nth-child(4)  { grid-column: 6 / 10;  --y: -1; }
+.gallery figure:nth-child(5)  { grid-column: 5 / 8;   --y: 5; }
+.gallery figure:nth-child(6)  { grid-column: 6 / 10;  --y: 10; }
+/* stack 3 — cols 10–14 */
+.gallery figure:nth-child(7)  { grid-column: 10 / 14; --y: 1; }
+.gallery figure:nth-child(8)  { grid-column: 11 / 14; --y: 7; }
+.gallery figure:nth-child(9)  { grid-column: 10 / 15; --y: 12; }
+/* stack 4 — cols 15–20 */
+.gallery figure:nth-child(10) { grid-column: 15 / 19; --y: 0; }
+.gallery figure:nth-child(11) { grid-column: 16 / 19; --y: 6; }
+.gallery figure:nth-child(12) { grid-column: 15 / 20; --y: 11; }
+/* stack 5 — cols 20–24 */
+.gallery figure:nth-child(13) { grid-column: 20 / 24; --y: -1; }
+.gallery figure:nth-child(14) { grid-column: 21 / 25; --y: 5; }
+.gallery figure:nth-child(15) { grid-column: 20 / 23; --y: 11; }
+.gallery figure:nth-child(16) { grid-column: 22 / 25; --y: 15; }
+
+/* The name sits over the photographs — last in the DOM, so it stacks on top. */
+.opening__title {
+  grid-column: 1 / 25;
+  --y: 6;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  pointer-events: none;            /* clicks fall through to the photos */
+}
+
+/* fit-content keeps the box hugging the glyphs, so it can be checked against
+   the photo placements rather than spanning the full column width */
+.wordmark {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  font-size: clamp(2.1rem, 8.2vw, 7rem);
+  font-weight: 500;
+  letter-spacing: -.03em;
+  line-height: 1.02;
+  color: var(--ink);
+  text-wrap: balance;
+}
+
+.opening__meta {
+  margin: clamp(1.75rem, 5vh, 3.25rem) 0 0;
+  padding-inline: var(--gutter);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .3rem 1.6rem;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.opening__meta b { color: var(--ink); font-weight: 600; }
+
+/* drafts held in IndexedDB on this device, not yet pushed to GitHub */
+.meta-draft {
+  color: var(--c-flavours);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: .05rem .55rem;
+}
+.meta-draft[hidden] { display: none; }
+
+/* ── Sections ───────────────────────────────────────────────────────────── */
+
+.section {
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding: clamp(3.5rem, 11vh, 7rem) var(--gutter) 0;
+}
+
+.section__head { margin-bottom: 2rem; }
+
+.section__title {
+  margin: 0 0 .5rem;
+  font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+  font-weight: 500;
+  letter-spacing: -.022em;
+}
+
+.section__sub {
+  margin: 0;
+  max-width: 56ch;
+  color: var(--ink-2);
+  font-size: .95rem;
+}
+
+/* ── Map ────────────────────────────────────────────────────────────────── */
+
+/* Capped to roughly London's own 1.4:1 aspect — full section width leaves the
+   city marooned in a sea of Home Counties. */
+.map-wrap {
+  position: relative;
+  max-width: 1060px;
+  margin-inline: auto;
+  border: 1px solid var(--hairline);
+  background: #f2ede3;
+}
+
+#map {
+  height: clamp(440px, 72vh, 760px);
+  background: #f2ede3;
+}
+
+.leaflet-container { font-family: var(--font); background: #f2ede3; }
+.leaflet-control-attribution {
+  background: rgba(255,251,244,.82) !important;
+  color: var(--ink-muted) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a { color: var(--ink-2) !important; }
+.leaflet-bar a {
+  background: var(--paper) !important;
+  color: var(--ink) !important;
+  border-color: var(--rule) !important;
+}
+.leaflet-bar a:hover { background: #f6f0e4 !important; }
+
+/* pins */
+.pin {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: var(--c-flavours);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px rgba(235,104,52,.45);
+  transition: transform .13s ease, box-shadow .13s ease;
+}
+.leaflet-marker-icon:hover .pin {
+  transform: scale(1.45);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 5px rgba(235,104,52,.7);
+}
+
+/* the hover photo card */
+.pin-card.leaflet-tooltip {
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  padding: 6px;
+  box-shadow: 0 14px 34px rgba(43,42,40,.18);
+  color: var(--ink);
+  white-space: normal;
+  width: 168px;
+}
+.pin-card.leaflet-tooltip::before { display: none; }   /* drop the arrow */
+.pin-card img {
+  display: block;
+  width: 156px; height: 156px;
+  object-fit: cover;
+}
+.pin-card__meta {
+  padding: 8px 3px 2px;
+  font-size: .74rem;
+  line-height: 1.35;
+}
+.pin-card__flavour { font-weight: 600; }
+.pin-card__where { color: var(--ink-muted); }
+
+.map-legend {
+  position: absolute;
+  left: 12px; bottom: 12px;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .4rem .6rem;
+  background: rgba(255,251,244,.9);
+  border: 1px solid var(--hairline);
+  font-size: .7rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+.map-legend__ramp {
+  width: 92px; height: 8px;
+  background: linear-gradient(to right,
+    var(--seq-1), var(--seq-2), var(--seq-3), var(--seq-4), var(--seq-5));
+}
+
+/* ── Leaderboards ───────────────────────────────────────────────────────── */
+
+.boards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;              /* Spotters has 2 rows — don't stretch it */
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+/* editorial: a rule and a label, not a filled card */
+.board { border-top: 1px solid var(--ink); padding-top: .9rem; }
+
+.board__title {
+  margin: 0 0 1.1rem;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.board__title::before {
+  content: "";
+  width: 8px; height: 8px;
+  background: var(--hue);
+}
+
+.board__list { margin: 0; padding: 0; list-style: none; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto;
+  align-items: center;
+  gap: .55rem;
+  padding: .34rem 0;
+}
+.row.is-extra { display: none; }
+.board.is-open .row.is-extra { display: grid; }
+
+.row__rank {
+  font-size: .72rem;
+  color: var(--ink-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.row__name {
+  font-size: .88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row__val {
+  font-size: .88rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.row__track {
+  grid-column: 2 / 3;
+  height: 7px;
+  background: rgba(43,42,40,.07);
+  overflow: hidden;
+  margin-top: -.1rem;
+}
+.row__bar {
+  display: block;                  /* a span is inline — width/height ignored */
+  height: 100%;
+  min-width: 3px;
+  background: var(--hue);
+}
+
+.board__more {
+  margin-top: .9rem;
+  background: none;
+  border: 0;
+  padding: .2rem 0;
+  font: inherit;
+  font-size: .74rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  cursor: pointer;
+  border-bottom: 1px solid var(--rule);
+}
+.board__more:hover { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ── Colophon ───────────────────────────────────────────────────────────── */
+
+.colophon {
+  margin-top: clamp(4rem, 12vh, 8rem);
+  padding: clamp(2.5rem, 7vh, 4.5rem) var(--gutter) clamp(2.5rem, 6vh, 4rem);
+  border-top: 1px solid var(--rule);
+  text-align: center;
+}
+
+.colophon__word {
+  margin: 0 0 .5rem;
+  font-size: clamp(1.5rem, 4.5vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -.02em;
+}
+
+.colophon__note { margin: 0; color: var(--ink-2); font-size: .9rem; }
+.colophon__note a { color: var(--c-flavours); text-underline-offset: 3px; }
+
+/* ── Lightbox ───────────────────────────────────────────────────────────── */
+
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(255,251,244,.97);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1rem, 5vw, 3rem);
+}
+.lightbox[hidden] { display: none; }
+
+.lightbox__fig { margin: 0; max-width: min(920px, 100%); text-align: center; }
+.lightbox__fig img {
+  max-width: 100%;
+  max-height: 78vh;
+  display: block;
+  margin-inline: auto;
+}
+.lightbox__fig figcaption {
+  margin-top: 1rem;
+  color: var(--ink-2);
+  font-size: .88rem;
+}
+.lightbox__close {
+  position: absolute;
+  top: 1rem; right: 1.5rem;
+  background: none; border: 0;
+  color: var(--ink);
+  font-size: 2.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .boards { grid-template-columns: 1fr; gap: 2.25rem; }
+}
+
+@media (max-width: 640px) {
+  /* Same rule, six columns: x from the grid, y from a whole number of
+     modules. Two photos across, staggered. Eight is enough on a phone —
+     sixteen would make the opening four screens deep. */
+  .gallery {
+    --cols: 12;
+    --u: calc((100cqw - 11 * var(--g)) / 12 + var(--g));
+    grid-template-columns: repeat(12, 1fr);
+  }
+  .gallery figure:nth-child(1)   { grid-column: 1 / 6;   --y: 0; }
+  .gallery figure:nth-child(2)   { grid-column: 7 / 13;  --y: 2; }
+  .gallery figure:nth-child(3)   { grid-column: 1 / 7;   --y: 7; }
+  .gallery figure:nth-child(4)   { grid-column: 8 / 13;  --y: 10; }
+  .gallery figure:nth-child(5)   { grid-column: 2 / 8;   --y: 14; }
+  .gallery figure:nth-child(6)   { grid-column: 8 / 13;  --y: 17; }
+  .gallery figure:nth-child(7)   { grid-column: 1 / 6;   --y: 21; }
+  .gallery figure:nth-child(8)   { grid-column: 6 / 12;  --y: 24; }
+  .gallery figure:nth-child(n+9) { display: none; }
+
+  .opening__title { grid-column: 1 / 13; --y: 11; }
+
+  /* London is landscape — a tall portrait map strands it in the Home Counties */
+  #map { height: clamp(360px, 50vh, 460px); }
+
+  .pin-card.leaflet-tooltip { width: 140px; }
+  .pin-card img { width: 128px; height: 128px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+  html { scroll-behavior: auto; }
+}
