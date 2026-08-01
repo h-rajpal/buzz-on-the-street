@@ -30,5 +30,21 @@
     "addedAt": "2026-08-01T23:29:38.622Z",
     "publishToInstagram": false,
     "instagramPostId": null
+  },
+  {
+    "id": "2026-07-25-pome",
+    "file": "photos/2026-07-25-pome.jpg",
+    "thumb": "photos/thumbs/2026-07-25-pome.jpg",
+    "lat": 51.494428,
+    "lng": -0.231703,
+    "locationSource": "manual",
+    "borough": "Hammersmith and Fulham",
+    "flavour": "Lime 'Rita",
+    "caption": "Found top down near Hammersmith",
+    "spottedAt": "2026-07-25T19:01:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-01T23:39:55.020Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
