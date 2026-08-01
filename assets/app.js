@@ -41,7 +41,9 @@ const state = { photos: [], boroughs: null, map: null };
   }
 
   renderStats();
-  renderGallery($('#openingGallery'), state.photos, GALLERY_N);
+  // Never repeat a photo to pad the grid out — the same image tiled five times
+  // reads as a bug, not a collage. Fewer, distinct tiles until there are 16.
+  renderGallery($('#openingGallery'), state.photos, Math.min(GALLERY_N, state.photos.length));
   renderBoards();
   renderMap();
   initLightbox();

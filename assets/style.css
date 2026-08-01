@@ -125,26 +125,29 @@ a { color: inherit; }
    An empty column is left between stacks, and two photos start at --y:-1 so
    the top edge bleeds off the page. */
 
-/* stack 1 — cols 1–5 */
+/* Ordered round-robin across the five stacks, NOT stack by stack. Photos are
+   never repeated to fill the grid, so early on there are fewer than 16 of
+   them — this way three sightings land left, centre and right instead of
+   piling up in the left-hand column. */
+
+/* first pass — one across each stack */
 .gallery figure:nth-child(1)  { grid-column: 1 / 5;   --y: 0; }
-.gallery figure:nth-child(2)  { grid-column: 1 / 4;   --y: 6; }
-.gallery figure:nth-child(3)  { grid-column: 2 / 6;   --y: 11; }
-/* stack 2 — cols 5–9 */
+.gallery figure:nth-child(2)  { grid-column: 10 / 14; --y: 1; }
+.gallery figure:nth-child(3)  { grid-column: 20 / 24; --y: -1; }
 .gallery figure:nth-child(4)  { grid-column: 6 / 10;  --y: -1; }
-.gallery figure:nth-child(5)  { grid-column: 5 / 8;   --y: 5; }
-.gallery figure:nth-child(6)  { grid-column: 6 / 10;  --y: 10; }
-/* stack 3 — cols 10–14 */
-.gallery figure:nth-child(7)  { grid-column: 10 / 14; --y: 1; }
-.gallery figure:nth-child(8)  { grid-column: 11 / 14; --y: 7; }
-.gallery figure:nth-child(9)  { grid-column: 10 / 15; --y: 12; }
-/* stack 4 — cols 15–20 */
-.gallery figure:nth-child(10) { grid-column: 15 / 19; --y: 0; }
-.gallery figure:nth-child(11) { grid-column: 16 / 19; --y: 6; }
-.gallery figure:nth-child(12) { grid-column: 15 / 20; --y: 11; }
-/* stack 5 — cols 20–24 */
-.gallery figure:nth-child(13) { grid-column: 20 / 24; --y: -1; }
-.gallery figure:nth-child(14) { grid-column: 21 / 25; --y: 5; }
-.gallery figure:nth-child(15) { grid-column: 20 / 23; --y: 11; }
+.gallery figure:nth-child(5)  { grid-column: 15 / 19; --y: 0; }
+/* second pass */
+.gallery figure:nth-child(6)  { grid-column: 1 / 4;   --y: 6; }
+.gallery figure:nth-child(7)  { grid-column: 11 / 14; --y: 7; }
+.gallery figure:nth-child(8)  { grid-column: 21 / 25; --y: 5; }
+.gallery figure:nth-child(9)  { grid-column: 5 / 8;   --y: 5; }
+.gallery figure:nth-child(10) { grid-column: 16 / 19; --y: 6; }
+/* third pass */
+.gallery figure:nth-child(11) { grid-column: 2 / 6;   --y: 11; }
+.gallery figure:nth-child(12) { grid-column: 10 / 15; --y: 12; }
+.gallery figure:nth-child(13) { grid-column: 20 / 23; --y: 11; }
+.gallery figure:nth-child(14) { grid-column: 6 / 10;  --y: 10; }
+.gallery figure:nth-child(15) { grid-column: 15 / 20; --y: 11; }
 .gallery figure:nth-child(16) { grid-column: 22 / 25; --y: 15; }
 
 /* The name sits over the photographs — last in the DOM, so it stacks on top. */
@@ -171,6 +174,12 @@ a { color: inherit; }
   line-height: 1.02;
   color: var(--ink);
   text-wrap: balance;
+  /* Soft paper halo. Real street photos are often dark wet paving, and
+     charcoal on that is unreadable — this keeps the type legible without
+     putting a hard box behind it. Delete these two shadows for pure overlap. */
+  text-shadow:
+    0 0 28px var(--paper),
+    0 0 10px rgba(255,251,244,.85);
 }
 
 .opening__meta {
