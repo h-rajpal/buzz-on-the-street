@@ -46,5 +46,21 @@
     "addedAt": "2026-08-01T23:39:55.020Z",
     "publishToInstagram": false,
     "instagramPostId": null
+  },
+  {
+    "id": "2026-07-25-9yrb",
+    "file": "photos/2026-07-25-9yrb.jpg",
+    "thumb": "photos/thumbs/2026-07-25-9yrb.jpg",
+    "lat": 51.519534,
+    "lng": -0.203458,
+    "locationSource": "search",
+    "borough": "Kensington and Chelsea",
+    "flavour": "Passionfruit Martini",
+    "caption": "Found in Notting Hill on a late night stroll",
+    "spottedAt": "2026-07-25T00:00:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-01T23:55:45.958Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
