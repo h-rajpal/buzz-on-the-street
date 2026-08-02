@@ -162,6 +162,25 @@
     ]
   },
   {
+    "id": "2026-04-21-i3s5",
+    "file": "photos/2026-04-21-i3s5.jpg",
+    "thumb": "photos/thumbs/2026-04-21-i3s5.jpg",
+    "lat": 51.49424,
+    "lng": -0.225843,
+    "locationSource": "search",
+    "borough": "Hammersmith and Fulham",
+    "flavours": [
+      "Watermelon Smash",
+      "Tequila 'Rita"
+    ],
+    "caption": "",
+    "spottedAt": "2026-04-21T18:20:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T23:01:26.152Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
     "id": "2026-04-21-d33m",
     "file": "photos/2026-04-21-d33m.jpg",
     "thumb": "photos/thumbs/2026-04-21-d33m.jpg",
