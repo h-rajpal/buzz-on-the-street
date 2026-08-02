@@ -56,7 +56,7 @@ let settings = loadSettings();
   state.defaultEndpoint = config.endpoint || '';
 
   fillBoroughSelect();
-  fillFlavourSelect();
+  resetFlavourRows();
   initSearch();
   bindUI();
   hydrateSettings();
@@ -105,19 +105,71 @@ function fillBoroughSelect() {
     names.map(n => `<option>${n}</option>`).join('');
 }
 
-function fillFlavourSelect(selected) {
-  const list = state.flavours.slice();
-  $('#flavour').innerHTML =
-    list.map(f => `<option${f === selected ? ' selected' : ''}>${f}</option>`).join('') +
-    `<option value="__new">+ Add a new flavour…</option>`;
-  toggleNewFlavour();
+/* One row per buzzball in the photo. Rows are built in JS because the count
+   is dynamic; each holds a select plus a text box that appears only when
+   "add a new flavour" is chosen. */
+
+function optionsHtml() {
+  return state.flavours.map(f => `<option>${esc(f)}</option>`).join('') +
+         `<option value="__new">+ Add a new flavour…</option>`;
 }
 
-const toggleNewFlavour = () => {
-  const isNew = $('#flavour').value === '__new';
-  $('#newFlavourWrap').hidden = !isNew;
-  if (isNew) $('#newFlavour').focus();
-};
+function addFlavourRow(value) {
+  const row = document.createElement('div');
+  row.className = 'frow';
+  row.innerHTML = `
+    <div class="frow__main">
+      <select class="frow__select">${optionsHtml()}</select>
+      <button class="frow__del" type="button" aria-label="Remove this buzzball">✕</button>
+    </div>
+    <input class="frow__new" type="text" placeholder="Name the new flavour"
+           autocapitalize="words" hidden>`;
+
+  const select = row.querySelector('.frow__select');
+  const newInput = row.querySelector('.frow__new');
+  if (value && state.flavours.includes(value)) select.value = value;
+
+  select.addEventListener('change', () => {
+    const isNew = select.value === '__new';
+    newInput.hidden = !isNew;
+    if (isNew) newInput.focus();
+  });
+  row.querySelector('.frow__del').addEventListener('click', () => {
+    row.remove();
+    syncFlavourRows();
+  });
+
+  $('#flavourList').appendChild(row);
+  syncFlavourRows();
+  return row;
+}
+
+/** Hide the remove button when only one row is left — you always need one. */
+function syncFlavourRows() {
+  const rows = [...$('#flavourList').children];
+  rows.forEach(r => r.classList.toggle('frow--single', rows.length === 1));
+}
+
+function resetFlavourRows() {
+  $('#flavourList').replaceChildren();
+  addFlavourRow();
+}
+
+/** Read every row, resolving "add new" boxes. Returns null on a bad row. */
+function readFlavours() {
+  const out = [];
+  for (const row of $('#flavourList').children) {
+    const select = row.querySelector('.frow__select');
+    let v = select.value;
+    if (v === '__new') {
+      v = row.querySelector('.frow__new').value.trim();
+      if (!v) return null;
+      if (!state.flavours.includes(v)) state.flavours.push(v);
+    }
+    out.push(v);
+  }
+  return out;
+}
 
 // ────────────────────────────────────────────────────────── place search
 //
@@ -378,6 +430,7 @@ function clearPhoto() {
   $('#btnClearPhoto').hidden = true;
   $('#form').hidden = true;
   $('#caption').value = '';
+  resetFlavourRows();
 }
 
 // ──────────────────────────────────────────────────────────── save draft
@@ -386,12 +439,9 @@ async function saveDraft() {
   if (!state.full) return toast('Choose a photo first', 'bad');
   if (state.lat == null) return toast('Place the pin where you found it', 'bad');
 
-  let flavour = $('#flavour').value;
-  if (flavour === '__new') {
-    flavour = $('#newFlavour').value.trim();
-    if (!flavour) return toast('Name the new flavour', 'bad');
-    if (!state.flavours.includes(flavour)) state.flavours.push(flavour);
-  }
+  const flavours = readFlavours();
+  if (!flavours) return toast('Name the new flavour', 'bad');
+  if (!flavours.length) return toast('Add at least one buzzball', 'bad');
 
   const spotter = (settings.spotter || '').trim();
   if (!spotter) {
@@ -411,7 +461,7 @@ async function saveDraft() {
     lng: state.lng,
     locationSource: state.locSource,
     borough: $('#borough').value,
-    flavour,
+    flavours,
     caption: $('#caption').value.trim(),
     spottedAt: when.toISOString(),
     spotter,
@@ -420,10 +470,10 @@ async function saveDraft() {
     instagramPostId: null,
   };
 
-  await putDraft({ id, meta, full: state.full, thumb: state.thumb, newFlavour: flavour });
+  await putDraft({ id, meta, full: state.full, thumb: state.thumb });
   await refreshQueueCount();
   clearPhoto();
-  fillFlavourSelect();
+  resetFlavourRows();
   toast('Saved. It will show on the site on this phone.');
 }
 
@@ -448,7 +498,7 @@ async function renderQueue() {
     <li class="qitem" data-id="${d.id}">
       <img src="${URL.createObjectURL(d.thumb)}" alt="">
       <div class="qitem__main">
-        <div class="qitem__flavour">${esc(d.meta.flavour)}</div>
+        <div class="qitem__flavour">${esc((d.meta.flavours || [d.meta.flavour]).join(' + '))}</div>
         <div class="qitem__where">${esc(d.meta.borough || 'Unknown')} · ${
           new Date(d.meta.spottedAt).toLocaleDateString('en-GB',
             { day: 'numeric', month: 'short' })}</div>
@@ -537,7 +587,7 @@ async function publishAll() {
       sightings.push({
         id: m.id,
         lat: m.lat, lng: m.lng, locationSource: m.locationSource,
-        borough: m.borough, flavour: m.flavour, caption: m.caption,
+        borough: m.borough, flavours: m.flavours, caption: m.caption,
         spottedAt: m.spottedAt, spotter: m.spotter,
         full, thumb,
       });
@@ -627,7 +677,7 @@ function bindUI() {
       err => toast('Could not get your location: ' + err.message, 'bad'),
       { enableHighAccuracy: true, timeout: 10000 });
   });
-  $('#flavour').addEventListener('change', toggleNewFlavour);
+  $('#btnAddFlavour').addEventListener('click', () => addFlavourRow());
   $('#btnSave').addEventListener('click', saveDraft);
   $('#btnQueue').addEventListener('click', () => showPanel('queue'));
   $('#btnSettings').addEventListener('click', () => showPanel('settings'));

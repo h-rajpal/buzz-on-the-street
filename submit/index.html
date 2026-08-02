@@ -70,11 +70,13 @@
     </div>
 
     <div class="field">
-      <label class="field__label" for="flavour">Flavour</label>
-      <select id="flavour"></select>
-      <div class="newflavour" id="newFlavourWrap" hidden>
-        <input type="text" id="newFlavour" placeholder="Name the new flavour" autocapitalize="words">
-      </div>
+      <label class="field__label">Flavours <span class="opt">one per buzzball</span></label>
+      <div id="flavourList"></div>
+      <button class="addrow" id="btnAddFlavour" type="button">+ Another buzzball in this photo</button>
+      <p class="hint">
+        Several in one shot? Add a row for each. They all count towards the
+        flavour and borough boards, but it stays a single sighting for you.
+      </p>
     </div>
 
     <div class="field">

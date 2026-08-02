@@ -214,6 +214,49 @@ select { appearance: none; background-image: none; }
 
 .newflavour { margin-top: .5rem; }
 
+/* ── Repeatable flavour rows ─────────────────────────────────────────── */
+
+.frow { margin-bottom: .5rem; }
+
+.frow__main {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .4rem;
+  align-items: center;
+}
+.frow--single .frow__main { grid-template-columns: 1fr; }
+.frow--single .frow__del { display: none; }
+
+.frow__del {
+  background: none;
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  width: 2.6rem;
+  height: 2.7rem;
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+.frow__del:active { background: #f4ecdd; }
+
+.frow__new { margin-top: .4rem; }
+
+.addrow {
+  display: block;
+  width: 100%;
+  padding: .6rem;
+  margin-top: .2rem;
+  border: 1px dashed var(--hairline);
+  border-radius: 9px;
+  background: none;
+  font: inherit;
+  font-size: .88rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.addrow:active { background: #f6f0e4; }
+
 .advanced { margin-top: 1.5rem; }
 .advanced summary {
   cursor: pointer;

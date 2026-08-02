@@ -60,7 +60,7 @@ const post = (body, origin = ORIGIN) => worker.fetch(new Request('https://x/subm
 
 const sighting = (over = {}) => ({
   id: '2026-07-19-ab12', lat: 51.5055, lng: -0.091, spotter: 'H',
-  flavour: 'Chili Mango', borough: 'Southwark', caption: 'by the bins',
+  flavours: ['Chili Mango'], borough: 'Southwark', caption: 'by the bins',
   spottedAt: '2026-07-19T18:42:00Z', locationSource: 'exif',
   full: FIX.jpg, thumb: FIX.jpg, ...over,
 });
@@ -191,6 +191,65 @@ restore();
   check('response never contains the GitHub token', !text.includes(TOKEN) && !text.includes('ghp_'), text.slice(0, 120));
   check('response does not leak GitHub internals', !/api\.github\.com|Bad credentials/i.test(text), text.slice(0, 120));
 }
+
+
+// -- several buzzballs in one photo -----------------------------------------
+console.log('\nmultiple buzzballs per photo');
+stubGitHub();
+{
+  const r = await post({ passcode: SECRET, sightings: [
+    sighting({ flavours: ['Chili Mango', "Lime 'Rita", 'Choc Tease'] }),
+  ] });
+  const rec = JSON.parse(captured.tree.find(t => t.path === 'data/photos.json').content)[0];
+  check('stores every flavour', r.status === 200 && rec.flavours.length === 3, JSON.stringify(rec.flavours));
+  check('drops the old singular field', rec.flavour === undefined);
+  const paths = captured.tree.filter(t => t.path.endsWith('.jpg')).length;
+  check('still one photo + one thumb', paths === 2, `${paths} image blobs`);
+}
+stubGitHub();
+{
+  // two of the same flavour must NOT collapse to one
+  const r = await post({ passcode: SECRET, sightings: [
+    sighting({ flavours: ['Chili Mango', 'Chili Mango'] }),
+  ] });
+  const rec = JSON.parse(captured.tree.find(t => t.path === 'data/photos.json').content)[0];
+  check('duplicate flavours are kept, not deduped', rec.flavours.length === 2, JSON.stringify(rec.flavours));
+  const fl = JSON.parse(captured.tree.find(t => t.path === 'data/flavours.json').content);
+  check('flavours.json is still deduped', fl.filter(f => f === 'Chili Mango').length === 1, JSON.stringify(fl));
+}
+stubGitHub();
+{
+  // anything queued before this change sends the old string
+  const legacy = sighting();
+  delete legacy.flavours;
+  legacy.flavour = 'Horchata';
+  const r = await post({ passcode: SECRET, sightings: [legacy] });
+  const rec = JSON.parse(captured.tree.find(t => t.path === 'data/photos.json').content)[0];
+  check('legacy single flavour still publishes',
+    r.status === 200 && JSON.stringify(rec.flavours) === '["Horchata"]', JSON.stringify(rec.flavours));
+}
+stubGitHub();
+{
+  const legacy = sighting({ flavours: [] });
+  const r = await post({ passcode: SECRET, sightings: [legacy] });
+  const rec = JSON.parse(captured.tree.find(t => t.path === 'data/photos.json').content)[0];
+  check('no flavour at all falls back to Other / unknown',
+    JSON.stringify(rec.flavours) === '["Other / unknown"]', JSON.stringify(rec.flavours));
+}
+{
+  const r = await post({ passcode: SECRET, sightings: [
+    sighting({ flavours: Array(13).fill('Chili Mango') }),
+  ] });
+  check('absurd flavour count -> 400', r.status === 400, `got ${r.status}`);
+}
+stubGitHub();
+{
+  const r = await post({ passcode: SECRET, sightings: [
+    sighting({ flavours: ['Chili Mango', "Lime 'Rita"] }),
+  ] });
+  check('commit message lists both', /Chili Mango \+ Lime 'Rita/.test(captured.commitMsg), captured.commitMsg);
+}
+restore();
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

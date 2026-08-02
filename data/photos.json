@@ -7,13 +7,15 @@
     "lng": -0.135318,
     "locationSource": "manual",
     "borough": "Camden",
-    "flavour": "Berry Cherry Limeade",
     "caption": "Midnight at Euston Square Station",
     "spottedAt": "2026-07-31T23:24:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-01T23:23:51.857Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Berry Cherry Limeade"
+    ]
   },
   {
     "id": "2026-07-31-ydul",
@@ -23,13 +25,15 @@
     "lng": -0.127847,
     "locationSource": "manual",
     "borough": "Camden",
-    "flavour": "Strawberry 'Rita",
     "caption": "Outside The Angel TCR",
     "spottedAt": "2026-07-31T18:33:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-01T23:29:38.622Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Strawberry 'Rita"
+    ]
   },
   {
     "id": "2026-07-25-pome",
@@ -39,13 +43,15 @@
     "lng": -0.231703,
     "locationSource": "manual",
     "borough": "Hammersmith and Fulham",
-    "flavour": "Lime 'Rita",
     "caption": "Found top down near Hammersmith",
     "spottedAt": "2026-07-25T19:01:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-01T23:39:55.020Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Lime 'Rita"
+    ]
   },
   {
     "id": "2026-07-25-9yrb",
@@ -55,13 +61,15 @@
     "lng": -0.203458,
     "locationSource": "search",
     "borough": "Kensington and Chelsea",
-    "flavour": "Passionfruit Martini",
     "caption": "Found in Notting Hill on a late night stroll",
     "spottedAt": "2026-07-25T00:00:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-01T23:55:45.958Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Passionfruit Martini"
+    ]
   },
   {
     "id": "2026-07-09-0w1n",
@@ -71,13 +79,15 @@
     "lng": -0.135446,
     "locationSource": "manual",
     "borough": "Camden",
-    "flavour": "Lime 'Rita",
     "caption": "",
     "spottedAt": "2026-07-09T18:37:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T00:03:58.334Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Lime 'Rita"
+    ]
   },
   {
     "id": "2026-06-17-e2w6",
@@ -87,13 +97,15 @@
     "lng": -0.179383,
     "locationSource": "manual",
     "borough": "Westminster",
-    "flavour": "Goaaaaaal-Melon",
     "caption": "",
     "spottedAt": "2026-06-17T17:30:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T00:15:13.553Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Goaaaaaal-Melon"
+    ]
   },
   {
     "id": "2026-05-30-nvh5",
@@ -103,13 +115,15 @@
     "lng": -0.230148,
     "locationSource": "search",
     "borough": "Hammersmith and Fulham",
-    "flavour": "Tequila 'Rita",
     "caption": "",
     "spottedAt": "2026-05-30T12:08:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T00:15:13.553Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Tequila 'Rita"
+    ]
   },
   {
     "id": "2026-05-28-6cv9",
@@ -119,13 +133,15 @@
     "lng": -0.229185,
     "locationSource": "manual",
     "borough": "Hammersmith and Fulham",
-    "flavour": "Berry Cherry Limeade",
     "caption": "",
     "spottedAt": "2026-05-28T18:49:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T00:15:13.553Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Berry Cherry Limeade"
+    ]
   },
   {
     "id": "2026-05-24-ruu2",
@@ -135,13 +151,15 @@
     "lng": -0.230375,
     "locationSource": "manual",
     "borough": "Hammersmith and Fulham",
-    "flavour": "Strawberry 'Rita",
     "caption": "",
     "spottedAt": "2026-05-24T08:50:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T09:30:09.741Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Strawberry 'Rita"
+    ]
   },
   {
     "id": "2026-04-21-d33m",
@@ -151,12 +169,14 @@
     "lng": -0.225843,
     "locationSource": "search",
     "borough": "Hammersmith and Fulham",
-    "flavour": "Tequila 'Rita",
     "caption": "",
     "spottedAt": "2026-04-21T18:20:00.000Z",
     "spotter": "Mayor",
     "addedAt": "2026-08-02T09:30:09.741Z",
     "publishToInstagram": false,
-    "instagramPostId": null
+    "instagramPostId": null,
+    "flavours": [
+      "Tequila 'Rita"
+    ]
   }
 ]

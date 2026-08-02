@@ -15,6 +15,7 @@ const MAX_BATCH = 12;                    // sightings per request
 const MAX_FULL_BYTES = 1_500_000;        // ~1.5 MB after base64 decode
 const MAX_THUMB_BYTES = 400_000;
 const MAX_BODY_BYTES = 20_000_000;
+const MAX_FLAVOURS = 12;                 // buzzballs visible in one photo
 
 // Greater London, padded. Rejects obviously bogus coordinates (0,0 especially).
 const BOUNDS = { minLat: 51.20, maxLat: 51.75, minLng: -0.62, maxLng: 0.42 };
@@ -135,7 +136,17 @@ function validate(s, i) {
   const spotter = str(s.spotter, LIMITS.spotter);
   if (!spotter) return { error: `${at}: no spotter name` };
 
-  const flavour = str(s.flavour, LIMITS.flavour) || 'Other / unknown';
+  // One entry per buzzball in the photo. Accepts the old single `flavour`
+  // string so anything queued before this change still publishes.
+  const rawFlavours = Array.isArray(s.flavours) ? s.flavours
+    : (s.flavour != null ? [s.flavour] : []);
+  if (rawFlavours.length > MAX_FLAVOURS) {
+    return { error: `${at}: at most ${MAX_FLAVOURS} buzzballs in one photo` };
+  }
+  // Deliberately NOT deduped: two Chili Mangos in one shot are two buzzballs
+  // and must count twice on the flavour board.
+  const flavours = rawFlavours.map(f => str(f, LIMITS.flavour)).filter(Boolean);
+  if (!flavours.length) flavours.push('Other / unknown');
 
   let spottedAt = new Date(s.spottedAt);
   if (isNaN(spottedAt)) spottedAt = new Date();
@@ -165,7 +176,7 @@ function validate(s, i) {
         locationSource: ['exif', 'device', 'search', 'manual'].includes(s.locationSource)
           ? s.locationSource : 'manual',
         borough: str(s.borough, LIMITS.borough),
-        flavour,
+        flavours,
         caption: str(s.caption, LIMITS.caption),
         spottedAt: spottedAt.toISOString(),
         spotter,
@@ -254,7 +265,7 @@ async function commit(items, env) {
         content: JSON.stringify(merged, null, 2) + '\n',
       });
 
-      const allFlavours = [...new Set([...flavours, ...items.map(i => i.meta.flavour)])];
+      const allFlavours = [...new Set([...flavours, ...items.flatMap(i => i.meta.flavours)])];
       if (allFlavours.length !== flavours.length) {
         tree.push({
           path: 'data/flavours.json', mode: '100644', type: 'blob',
@@ -269,7 +280,7 @@ async function commit(items, env) {
 
       const first = items[0].meta;
       const message = items.length === 1
-        ? `Add sighting: ${first.flavour} in ${first.borough || 'London'} (${first.spotter})`
+        ? `Add sighting: ${first.flavours.join(' + ')} in ${first.borough || 'London'} (${first.spotter})`
         : `Add ${items.length} sightings`;
 
       const newCommit = await gh('/git/commits', {

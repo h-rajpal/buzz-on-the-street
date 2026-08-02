@@ -75,28 +75,52 @@ function renderGallery(el, photos, count) {
 
 function renderStats() {
   const p = state.photos;
-  $('#statTotal').textContent = p.length;
+  // buzzballs, not photographs — a shot with three in it is three finds
+  $('#statTotal').textContent = p.reduce((n, x) => n + ballsIn(x), 0);
   $('#statBoroughs').textContent = new Set(p.map(x => x.borough).filter(Boolean)).size;
 }
 
 // ────────────────────────────────────────────────────────── leaderboards
 
-function tally(rows, key) {
+/* One photo can hold several buzzballs, which makes "how many" ambiguous.
+   The rule:
+     flavours  — every ball counts       (two balls in a shot = two entries)
+     boroughs  — every ball counts
+     spotters  — every *sighting* counts (finding two at once is still one trip)
+   `flavours` is the canonical field; `flavour` is tolerated so records written
+   before this change still read correctly. */
+export const flavoursOf = p =>
+  (Array.isArray(p.flavours) && p.flavours.length) ? p.flavours
+  : (p.flavour ? [p.flavour] : []);
+
+const ballsIn = p => Math.max(1, flavoursOf(p).length);
+
+const ranked = m => [...m]
+  .map(([name, count]) => ({ name, count }))
+  .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+
+/** One key per photo, weighted by however many balls it holds. */
+function tallyBy(rows, keyFn, weightFn = () => 1) {
   const m = new Map();
   for (const r of rows) {
-    const k = key(r);
+    const k = keyFn(r);
     if (!k) continue;
-    m.set(k, (m.get(k) || 0) + 1);
+    m.set(k, (m.get(k) || 0) + weightFn(r));
   }
-  return [...m]
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  return ranked(m);
+}
+
+/** One entry per ball, not per photo. */
+function tallyFlavours(rows) {
+  const m = new Map();
+  for (const r of rows) for (const f of flavoursOf(r)) m.set(f, (m.get(f) || 0) + 1);
+  return ranked(m);
 }
 
 function renderBoards() {
-  buildBoard('#boardBoroughs', tally(state.photos, p => p.borough));
-  buildBoard('#boardFlavours', tally(state.photos, p => p.flavour));
-  buildBoard('#boardSpotters', tally(state.photos, p => p.spotter));
+  buildBoard('#boardBoroughs', tallyBy(state.photos, p => p.borough, ballsIn));
+  buildBoard('#boardFlavours', tallyFlavours(state.photos));
+  buildBoard('#boardSpotters', tallyBy(state.photos, p => p.spotter));
 
   $$('.board__more').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -153,7 +177,7 @@ function renderMap() {
   // choropleth — sequential blue by sighting count
   const counts = new Map();
   for (const p of state.photos) {
-    if (p.borough) counts.set(p.borough, (counts.get(p.borough) || 0) + 1);
+    if (p.borough) counts.set(p.borough, (counts.get(p.borough) || 0) + ballsIn(p));
   }
   const maxCount = Math.max(1, ...counts.values());
 
@@ -227,11 +251,13 @@ function bucket(n, max) {
 function pinCard(p) {
   const when = new Date(p.spottedAt).toLocaleDateString('en-GB',
     { day: 'numeric', month: 'short', year: 'numeric' });
+  const fl = flavoursOf(p);
   return `
     <img src="${esc(p.thumb)}" alt="">
     <div class="pin-card__meta">
-      <div class="pin-card__flavour">${esc(p.flavour || 'Unknown')}</div>
-      <div class="pin-card__where">${esc(p.borough || 'London')} · ${when}</div>
+      <div class="pin-card__flavour">${esc(fl.join(' + ') || 'Unknown')}</div>
+      <div class="pin-card__where">${esc(p.borough || 'London')} · ${when}${
+        fl.length > 1 ? ` · ${fl.length} balls` : ''}</div>
     </div>`;
 }
 
@@ -247,10 +273,11 @@ function initLightbox() {
 function openLightbox(p) {
   const when = new Date(p.spottedAt).toLocaleDateString('en-GB',
     { day: 'numeric', month: 'long', year: 'numeric' });
+  const fl = flavoursOf(p);
   $('#lightboxImg').src = p.file;
-  $('#lightboxImg').alt = `${p.flavour || 'Buzzball'} in ${p.borough || 'London'}`;
+  $('#lightboxImg').alt = `${fl.join(' and ') || 'Buzzball'} in ${p.borough || 'London'}`;
   $('#lightboxCap').textContent =
-    [p.flavour, p.borough, p.caption, when].filter(Boolean).join(' · ');
+    [fl.join(' + '), p.borough, p.caption, when].filter(Boolean).join(' · ');
   $('#lightbox').hidden = false;
 }
 

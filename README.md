@@ -127,7 +127,7 @@ no GitHub account, no install, no setup call.
   "thumb": "photos/thumbs/2026-07-30-04e.jpg",
   "lat": 51.568919, "lng": -0.144305,
   "borough": "Camden",
-  "flavour": "Watermelon Smash",
+  "flavours": ["Watermelon Smash", "Chili Mango"],
   "caption": "in the phone box",
   "spottedAt": "2026-07-30T13:46:00Z",
   "spotter": "A",
@@ -135,6 +135,29 @@ no GitHub account, no install, no setup call.
   "instagramPostId": null
 }
 ```
+
+### Counting: balls vs sightings
+
+One photo can hold several buzzballs, which makes "how many" ambiguous. The
+rule, and it is deliberate:
+
+| Board | Counts | A photo with 3 balls adds |
+|---|---|---|
+| Flavours | every ball | 3 (one per entry, **duplicates included**) |
+| Boroughs | every ball | 3 |
+| Spotters | every **sighting** | 1 — finding three at once is still one trip |
+| "N found" | every ball | 3 |
+| Map pins | every photo | 1 |
+
+Two consequences that look like bugs but aren't:
+
+- **`flavours` is never deduplicated.** Two Chili Mangos in one shot are two
+  buzzballs and must count twice. Only `flavours.json` — the dropdown list — is
+  deduped.
+- **A spotter's number is lower than their ball count.** That's the point.
+
+`flavours` is canonical. `flavour` (a single string) is still read correctly if
+it turns up, so records written before this change don't break.
 
 `borough` is resolved by point-in-polygon against `boroughs.geojson` at
 submission time, so the site never has to compute it.
