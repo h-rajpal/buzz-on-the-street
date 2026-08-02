@@ -62,5 +62,21 @@
     "addedAt": "2026-08-01T23:55:45.958Z",
     "publishToInstagram": false,
     "instagramPostId": null
+  },
+  {
+    "id": "2026-07-09-0w1n",
+    "file": "photos/2026-07-09-0w1n.jpg",
+    "thumb": "photos/thumbs/2026-07-09-0w1n.jpg",
+    "lat": 51.525481,
+    "lng": -0.135446,
+    "locationSource": "manual",
+    "borough": "Camden",
+    "flavour": "Lime 'Rita",
+    "caption": "",
+    "spottedAt": "2026-07-09T18:37:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T00:03:58.334Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
