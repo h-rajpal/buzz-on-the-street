@@ -8,7 +8,9 @@ import { draftsAsPhotos } from './store.js';
 const LONDON = [51.5074, -0.1278];
 const SEQ = ['--seq-1', '--seq-2', '--seq-3', '--seq-4', '--seq-5'];
 const TOP_N = 8;        // rows shown before "Show all"
-const GALLERY_N = 16;   // the scatter; each is placed by hand in style.css
+const GALLERY_N = 10;   // photos in the opening collage, sampled at random.
+                        // style.css places up to 16 by hand, so this can be
+                        // raised to 16 without touching anything else.
                         // (mobile shows the first 8 — see the media query)
 
 const $  = (s, r = document) => r.querySelector(s);
@@ -41,9 +43,9 @@ const state = { photos: [], boroughs: null, map: null };
   }
 
   renderStats();
-  // Never repeat a photo to pad the grid out — the same image tiled five times
-  // reads as a bug, not a collage. Fewer, distinct tiles until there are 16.
-  renderGallery($('#openingGallery'), state.photos, Math.min(GALLERY_N, state.photos.length));
+  // A fresh random handful on every load, so the collage isn't the same ten
+  // photos forever once the collection grows.
+  renderGallery($('#openingGallery'), sample(state.photos, GALLERY_N));
   renderBoards();
   renderMap();
   initLightbox();
@@ -51,11 +53,22 @@ const state = { photos: [], boroughs: null, map: null };
 
 // ────────────────────────────────────────────────────── opening gallery
 
-function renderGallery(el, photos, count) {
+/** Fisher–Yates on a copy, then take the first n. Never repeats a photo: the
+ *  same image tiled five times reads as a bug, not a collage. */
+function sample(arr, n) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, n);
+}
+
+function renderGallery(el, photos) {
   if (!photos.length) return;
   const frag = document.createDocumentFragment();
-  for (let i = 0; i < count; i++) {
-    const p = photos[i % photos.length];
+  for (let i = 0; i < photos.length; i++) {
+    const p = photos[i];
     const fig = document.createElement('figure');
     const img = document.createElement('img');
     img.src = p.thumb;
