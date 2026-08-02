@@ -78,5 +78,53 @@
     "addedAt": "2026-08-02T00:03:58.334Z",
     "publishToInstagram": false,
     "instagramPostId": null
+  },
+  {
+    "id": "2026-06-17-e2w6",
+    "file": "photos/2026-06-17-e2w6.jpg",
+    "thumb": "photos/thumbs/2026-06-17-e2w6.jpg",
+    "lat": 51.498609,
+    "lng": -0.179383,
+    "locationSource": "manual",
+    "borough": "Westminster",
+    "flavour": "Goaaaaaal-Melon",
+    "caption": "",
+    "spottedAt": "2026-06-17T17:30:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T00:15:13.553Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
+    "id": "2026-05-30-nvh5",
+    "file": "photos/2026-05-30-nvh5.jpg",
+    "thumb": "photos/thumbs/2026-05-30-nvh5.jpg",
+    "lat": 51.494384,
+    "lng": -0.230148,
+    "locationSource": "search",
+    "borough": "Hammersmith and Fulham",
+    "flavour": "Tequila 'Rita",
+    "caption": "",
+    "spottedAt": "2026-05-30T12:08:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T00:15:13.553Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
+    "id": "2026-05-28-6cv9",
+    "file": "photos/2026-05-28-6cv9.jpg",
+    "thumb": "photos/thumbs/2026-05-28-6cv9.jpg",
+    "lat": 51.501837,
+    "lng": -0.229185,
+    "locationSource": "manual",
+    "borough": "Hammersmith and Fulham",
+    "flavour": "Berry Cherry Limeade",
+    "caption": "",
+    "spottedAt": "2026-05-28T18:49:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T00:15:13.553Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
