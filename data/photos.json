@@ -197,5 +197,23 @@
     "flavours": [
       "Tequila 'Rita"
     ]
+  },
+  {
+    "id": "2026-04-17-aqfv",
+    "file": "photos/2026-04-17-aqfv.jpg",
+    "thumb": "photos/thumbs/2026-04-17-aqfv.jpg",
+    "lat": 51.4902,
+    "lng": -0.215087,
+    "locationSource": "search",
+    "borough": "Hammersmith and Fulham",
+    "flavours": [
+      "Cran Blaster"
+    ],
+    "caption": "",
+    "spottedAt": "2026-04-17T22:41:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-08-02T23:04:26.751Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   }
 ]
