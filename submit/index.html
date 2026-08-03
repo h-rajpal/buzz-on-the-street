@@ -38,6 +38,7 @@
     <img class="picker__preview" id="preview" alt="" hidden>
   </label>
   <button class="linkbtn" id="btnClearPhoto" type="button" hidden>Choose a different photo</button>
+  <p class="pstate" id="photoState" hidden></p>
 
   <div id="form" hidden>
 
@@ -91,7 +92,9 @@
     </div>
 
     <div class="actions">
-      <button class="btn btn--primary" id="btnSave" type="button">Save sighting</button>
+      <!-- disabled until the photo has actually been resized; on a slow phone
+           there is a real window where it hasn't -->
+      <button class="btn btn--primary" id="btnSave" type="button" disabled>Save sighting</button>
       <p class="hint hint--center">Saved to this phone. Publish to the site from the queue.</p>
     </div>
 
@@ -147,6 +150,16 @@
     <button class="btn btn--primary" id="btnSaveSettings" type="button">Save settings</button>
     <button class="btn" id="btnTest" type="button">Test connection</button>
     <p class="hint hint--center" id="testResult"></p>
+  </div>
+
+  <h2 class="subhead">Diagnostics</h2>
+  <p class="hint">
+    If saving doesn't work on your phone, run this and send the result — it says
+    exactly which step is failing. No photos or passcodes are included.
+  </p>
+  <div class="actions">
+    <button class="btn" id="btnDiag" type="button">Run checks</button>
+    <pre class="diag" id="diagOut" hidden></pre>
   </div>
 </section>
 

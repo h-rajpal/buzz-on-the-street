@@ -378,40 +378,135 @@ async function onFile(file) {
   }
 
   // resize
+  photoState('Preparing photo…');
+  let decoded;
   try {
-    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-    state.full = await resize(bitmap, MAX_EDGE, QUALITY);
-    state.thumb = await resize(bitmap, THUMB_EDGE, THUMB_QUALITY);
-    bitmap.close?.();
+    decoded = await decode(file);
+    state.full = await resize(decoded, MAX_EDGE, QUALITY);
+    state.thumb = await resize(decoded, THUMB_EDGE, THUMB_QUALITY);
   } catch (e) {
-    toast('Could not read that image: ' + e.message, 'bad');
+    photoState(`Couldn't process this photo — ${e.message}. Try a different one, ` +
+               `or on iPhone use Settings ▸ Camera ▸ Formats ▸ Most Compatible.`, 'bad');
     return;
+  } finally {
+    decoded?.release();
   }
 
-  const url = URL.createObjectURL(state.full);
-  $('#preview').src = url;
+  $('#preview').src = URL.createObjectURL(state.full);
   $('#preview').hidden = false;
   $('#pickerInner').hidden = true;
   $('#btnClearPhoto').hidden = false;
-  $('#form').hidden = false;
+  setPhotoReady(true);
+  photoState(`Ready — ${(state.full.size / 1024).toFixed(0)} KB`);
+}
 
-  toast(`Ready — ${(state.full.size / 1024).toFixed(0)} KB`);
+/** Save is only live once there is actually a resized image to save. */
+function setPhotoReady(ready) {
+  $('#btnSave').disabled = !ready;
+}
+
+function photoState(msg, kind) {
+  const el = $('#photoState');
+  el.textContent = msg;
+  el.dataset.kind = kind || '';
+  el.hidden = !msg;
+}
+
+/**
+ * Decode to something drawImage accepts.
+ *
+ * createImageBitmap is preferred because it applies EXIF orientation, but
+ * Safari has shipped builds that reject the options bag, and iPhones hand over
+ * HEIC when the library isn't set to Most Compatible. An <img> decodes anything
+ * the OS can — including HEIC — and Safari orients it automatically, so it is
+ * the fallback rather than a hard failure.
+ */
+async function decode(file) {
+  if (typeof createImageBitmap === 'function') {
+    for (const opts of [{ imageOrientation: 'from-image' }, undefined]) {
+      try {
+        const bm = await createImageBitmap(file, opts);
+        return { src: bm, width: bm.width, height: bm.height, release: () => bm.close?.() };
+      } catch { /* try the next strategy */ }
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  try {
+    await new Promise((res, rej) => {
+      img.onload = res;
+      img.onerror = () => rej(new Error('this format is not supported'));
+      img.src = url;
+    });
+    if (!img.naturalWidth) throw new Error('the image had no dimensions');
+    return {
+      src: img, width: img.naturalWidth, height: img.naturalHeight,
+      release: () => URL.revokeObjectURL(url),
+    };
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    throw e;
+  }
 }
 
 /** Draw to a canvas at the target long edge and re-encode as JPEG.
  *  Side effect worth knowing: this strips every scrap of metadata, so the
  *  published file carries no GPS. We keep the coordinates in the JSON. */
-function resize(bitmap, maxEdge, quality) {
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
+function resize(decoded, maxEdge, quality) {
+  const scale = Math.min(1, maxEdge / Math.max(decoded.width, decoded.height));
+  const w = Math.max(1, Math.round(decoded.width * scale));
+  const h = Math.max(1, Math.round(decoded.height * scale));
   const canvas = document.createElement('canvas');
   canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(bitmap, 0, 0, w, h);
-  return new Promise((res, rej) =>
-    canvas.toBlob(b => b ? res(b) : rej(new Error('encode failed')), 'image/jpeg', quality));
+  ctx.drawImage(decoded.src, 0, 0, w, h);
+  return canvasToJpeg(canvas, quality);
+}
+
+/**
+ * iOS Safari has shipped versions where canvas.toBlob() never invokes its
+ * callback. A bare `new Promise(... toBlob ...)` then hangs forever with no
+ * error at all — the form sits open and Save does nothing, which is exactly
+ * the symptom this was reported with. So: race it against a timeout and fall
+ * back to the synchronous toDataURL path.
+ *
+ * The timeout is short on purpose. Encoding a <=1600px canvas is a few tens of
+ * milliseconds even on an old phone, so a second is already generous — and two
+ * resizes run per photo, so every extra second here is two seconds of the user
+ * staring at "Preparing photo…".
+ */
+const ENCODE_TIMEOUT_MS = 1200;
+
+function canvasToJpeg(canvas, quality) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const ok = v => { if (!settled) { settled = true; resolve(v); } };
+    const no = e => { if (!settled) { settled = true; reject(e); } };
+
+    const fallback = setTimeout(() => {
+      try {
+        const data = canvas.toDataURL('image/jpeg', quality);
+        const bin = atob(data.slice(data.indexOf(',') + 1));
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        ok(new Blob([bytes], { type: 'image/jpeg' }));
+      } catch {
+        no(new Error('the browser could not encode it'));
+      }
+    }, ENCODE_TIMEOUT_MS);
+
+    try {
+      canvas.toBlob(blob => {
+        clearTimeout(fallback);
+        blob ? ok(blob) : no(new Error('the encoder returned nothing'));
+      }, 'image/jpeg', quality);
+    } catch (e) {
+      clearTimeout(fallback);
+      no(e);
+    }
+  });
 }
 
 const pad = n => String(n).padStart(2, '0');
@@ -430,13 +525,27 @@ function clearPhoto() {
   $('#btnClearPhoto').hidden = true;
   $('#form').hidden = true;
   $('#caption').value = '';
+  setPhotoReady(false);
+  photoState('');
   resetFlavourRows();
 }
 
 // ──────────────────────────────────────────────────────────── save draft
 
 async function saveDraft() {
-  if (!state.full) return toast('Choose a photo first', 'bad');
+  try {
+    await doSave();
+  } catch (e) {
+    // Without this the promise rejected silently and the button appeared dead:
+    // no toast, no queue entry, no reset. Never fail invisibly again.
+    console.error('save failed', e);
+    photoState(`Couldn't save — ${e.name}: ${e.message}`, 'bad');
+    toast(`Save failed: ${e.message}`, 'bad');
+  }
+}
+
+async function doSave() {
+  if (!state.full) return toast('The photo is still being prepared — one moment', 'bad');
   if (state.lat == null) return toast('Place the pin where you found it', 'bad');
 
   const flavours = readFlavours();
@@ -666,7 +775,91 @@ function toast(msg, kind) {
   toastTimer = setTimeout(() => { el.hidden = true; }, kind === 'bad' ? 5000 : 2600);
 }
 
+// ───────────────────────────────────────────────────────────── diagnostics
+//
+// Exists because "nothing happens" is impossible to debug remotely. Each step
+// of the pipeline is exercised for real and reported. Deliberately contains no
+// photo data and no passcode.
+
+async function runDiagnostics() {
+  const out = $('#diagOut');
+  out.hidden = false;
+  out.textContent = 'Running…';
+  const L = [];
+  const line = (k, v) => L.push(`${k.padEnd(22)} ${v}`);
+
+  line('user agent', navigator.userAgent);
+  line('secure context', String(window.isSecureContext));
+  line('screen', `${innerWidth}x${innerHeight} @${devicePixelRatio}`);
+
+  // a real 2x2 JPEG to test the encode path end to end
+  let testBlob = null;
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 2;
+    c.getContext('2d').fillRect(0, 0, 2, 2);
+    const t0 = Date.now();
+    testBlob = await canvasToJpeg(c, 0.8);
+    line('canvas -> jpeg', `ok, ${testBlob.size} bytes in ${Date.now() - t0}ms`);
+  } catch (e) {
+    line('canvas -> jpeg', `FAIL ${e.message}`);
+  }
+
+  line('createImageBitmap', typeof createImageBitmap === 'function' ? 'present' : 'MISSING');
+  if (testBlob && typeof createImageBitmap === 'function') {
+    for (const [label, opts] of [['with orientation', { imageOrientation: 'from-image' }], ['plain', undefined]]) {
+      try {
+        const bm = await createImageBitmap(testBlob, opts);
+        line(`  ${label}`, `ok ${bm.width}x${bm.height}`);
+        bm.close?.();
+      } catch (e) { line(`  ${label}`, `FAIL ${e.name}: ${e.message}`); }
+    }
+  }
+
+  // IndexedDB: open, write a Blob, read it back, delete
+  try {
+    const id = '__diag-' + Math.random().toString(36).slice(2, 8);
+    const blob = testBlob || new Blob(['x']);
+    await putDraft({ id, meta: { id, spottedAt: new Date().toISOString(), flavours: [], diag: true }, full: blob, thumb: blob });
+    const rows = await allDrafts();
+    const found = rows.find(r => r.id === id);
+    line('indexeddb write', found ? `ok, blob read back ${found.full.size} bytes` : 'FAIL not found after write');
+    await deleteDraft(id);
+    line('indexeddb delete', 'ok');
+  } catch (e) {
+    line('indexeddb', `FAIL ${e.name}: ${e.message}`);
+  }
+
+  try {
+    const est = await navigator.storage?.estimate?.();
+    line('storage', est ? `${(est.usage / 1048576).toFixed(1)} / ${(est.quota / 1048576).toFixed(0)} MB` : 'estimate unavailable');
+  } catch { line('storage', 'estimate failed'); }
+
+  line('geolocation', navigator.geolocation ? 'present' : 'MISSING');
+  line('service worker', 'serviceWorker' in navigator
+    ? ((await navigator.serviceWorker.getRegistration()) ? 'registered' : 'not registered')
+    : 'unsupported');
+  line('spotter set', settings.spotter ? 'yes' : 'NO');
+  line('passcode set', settings.passcode ? 'yes' : 'no');
+  line('endpoint', endpoint() ? 'configured' : 'MISSING');
+  line('photo in memory', state.full ? `${(state.full.size / 1024).toFixed(0)} KB` : 'none');
+  line('queued drafts', String(await countDrafts()));
+
+  out.textContent = L.join('\n');
+}
+
 function bindUI() {
+  // Nothing should ever fail invisibly on a phone with no console.
+  addEventListener('unhandledrejection', e => {
+    console.error('unhandled rejection', e.reason);
+    toast('Something failed: ' + (e.reason?.message || e.reason), 'bad');
+  });
+  addEventListener('error', e => {
+    if (e.message) toast('Error: ' + e.message, 'bad');
+  });
+  $('#btnDiag').addEventListener('click', () => runDiagnostics().catch(e =>
+    { $('#diagOut').textContent = 'diagnostics crashed: ' + e.message; }));
+
   $('#file').addEventListener('change', e => onFile(e.target.files[0]));
   $('#btnClearPhoto').addEventListener('click', clearPhoto);
   $('#btnLocate').addEventListener('click', () => {

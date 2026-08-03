@@ -214,6 +214,39 @@ select { appearance: none; background-image: none; }
 
 .newflavour { margin-top: .5rem; }
 
+.pstate {
+  margin: .6rem 0 0;
+  font-size: .85rem;
+  text-align: center;
+  color: var(--ink-muted);
+}
+.pstate[hidden] { display: none; }
+.pstate[data-kind="bad"] {
+  color: var(--bad);
+  text-align: left;
+  background: #fdeeea;
+  border: 1px solid rgba(194,64,42,.25);
+  border-radius: 9px;
+  padding: .6rem .7rem;
+}
+
+.diag {
+  margin: 0;
+  padding: .7rem;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .72rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--ink-2);
+  -webkit-user-select: all;
+  user-select: all;
+}
+.diag[hidden] { display: none; }
+
 /* ── Repeatable flavour rows ─────────────────────────────────────────── */
 
 .frow { margin-bottom: .5rem; }

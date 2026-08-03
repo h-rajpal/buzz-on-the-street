@@ -7,7 +7,10 @@
    Map tiles and the GitHub API are deliberately NOT cached — stale tiles are
    confusing and a cached API response would be actively wrong. */
 
-const CACHE = 'buzz-shell-v1';
+/* Bump this whenever submit.js / submit.css change in a way users must get.
+   `activate` deletes every cache whose name isn't this one, so a bump forces a
+   clean refetch instead of an installed PWA sitting on stale code. */
+const CACHE = 'buzz-shell-v2';
 
 const SHELL = [
   './',
