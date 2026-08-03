@@ -162,6 +162,24 @@
     ]
   },
   {
+    "id": "2026-05-02-6o4b",
+    "file": "photos/2026-05-02-6o4b.jpg",
+    "thumb": "photos/thumbs/2026-05-02-6o4b.jpg",
+    "lat": 51.463391,
+    "lng": -0.114802,
+    "locationSource": "search",
+    "borough": "Lambeth",
+    "flavours": [
+      "Grapes Gone Wild"
+    ],
+    "caption": "Brixton village market",
+    "spottedAt": "2026-05-02T18:08:00.000Z",
+    "spotter": "Juju",
+    "addedAt": "2026-08-03T19:20:20.985Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
     "id": "2026-04-21-i3s5",
     "file": "photos/2026-04-21-i3s5.jpg",
     "thumb": "photos/thumbs/2026-04-21-i3s5.jpg",
