@@ -10,7 +10,7 @@
 /* Bump this whenever submit.js / submit.css change in a way users must get.
    `activate` deletes every cache whose name isn't this one, so a bump forces a
    clean refetch instead of an installed PWA sitting on stale code. */
-const CACHE = 'buzz-shell-v2';
+const CACHE = 'buzz-shell-v3';
 
 const SHELL = [
   './',

@@ -532,6 +532,16 @@ function clearPhoto() {
 
 // ──────────────────────────────────────────────────────────── save draft
 
+/** A thrown value is not necessarily an Error. IndexedDB in particular rejects
+ *  with null in some failure modes, and reading `.name` off that throws a
+ *  second error that hides the first — which is exactly what happened on iOS. */
+function describeError(e) {
+  if (e instanceof Error) return `${e.name}: ${e.message}`;
+  if (e == null) return 'unknown error (no detail from the browser)';
+  if (typeof e === 'object') return e.message || e.name || JSON.stringify(e).slice(0, 120);
+  return String(e);
+}
+
 async function saveDraft() {
   try {
     await doSave();
@@ -539,8 +549,9 @@ async function saveDraft() {
     // Without this the promise rejected silently and the button appeared dead:
     // no toast, no queue entry, no reset. Never fail invisibly again.
     console.error('save failed', e);
-    photoState(`Couldn't save — ${e.name}: ${e.message}`, 'bad');
-    toast(`Save failed: ${e.message}`, 'bad');
+    const what = describeError(e);
+    photoState(`Couldn't save — ${what}`, 'bad');
+    toast(`Save failed: ${what}`, 'bad');
   }
 }
 
@@ -823,7 +834,9 @@ async function runDiagnostics() {
     await putDraft({ id, meta: { id, spottedAt: new Date().toISOString(), flavours: [], diag: true }, full: blob, thumb: blob });
     const rows = await allDrafts();
     const found = rows.find(r => r.id === id);
-    line('indexeddb write', found ? `ok, blob read back ${found.full.size} bytes` : 'FAIL not found after write');
+    line('indexeddb write', found
+      ? `ok, ${found.full.size} bytes back as ${found.full.constructor.name}/${found.full.type}`
+      : 'FAIL not found after write');
     await deleteDraft(id);
     line('indexeddb delete', 'ok');
   } catch (e) {
@@ -852,7 +865,7 @@ function bindUI() {
   // Nothing should ever fail invisibly on a phone with no console.
   addEventListener('unhandledrejection', e => {
     console.error('unhandled rejection', e.reason);
-    toast('Something failed: ' + (e.reason?.message || e.reason), 'bad');
+    toast('Something failed: ' + describeError(e.reason), 'bad');
   });
   addEventListener('error', e => {
     if (e.message) toast('Error: ' + e.message, 'bad');

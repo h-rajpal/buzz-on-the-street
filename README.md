@@ -99,6 +99,36 @@ the current-location button and the ability to install the app. Both come back
 the moment the site is on GitHub Pages, which is HTTPS by default. A tunnel
 (`cloudflared tunnel --url http://localhost:8777`) also works for testing.
 
+### iOS quirks — read before touching the save path
+
+Three separate WebKit behaviours conspired to make Save do *nothing at all* on
+iPhone while working perfectly in macOS Safari. All are handled; don't undo them
+without reading this.
+
+- **Blobs in IndexedDB fail on iOS.** Images are stored as `ArrayBuffer` and
+  rebuilt as Blobs on read. This was the actual cause. Rows written before the
+  change still hold Blobs and are read transparently.
+- **`request.error` / `transaction.error` can be `null`.** Rejecting with them
+  directly means any `catch (e) { e.name }` throws a *second* error that buries
+  the first — which is how a storage failure surfaced as
+  `null is not an object (evaluating 'e.name')`. `store.js` never rejects with
+  anything that isn't an Error.
+- **`DOMException.message` is getter-only**, and a DOMException *is* an Error.
+  So an error normaliser must build a fresh Error rather than annotate the caught
+  one, or it throws while reporting — the same bug one level up.
+- **`canvas.toBlob()` can never invoke its callback.** It races a 1.2s timeout
+  and falls back to `toDataURL`.
+- **`createImageBitmap` may be missing or reject** (HEIC, older Safari). There's
+  an `<img>` decode fallback; Safari orients `<img>` automatically.
+- **Save stays disabled until the resize completes.** The form is revealed early
+  so Leaflet can measure the map, which leaves a window where there's no image
+  yet.
+
+There's a **Diagnostics** button in the app's settings that exercises all of this
+for real — canvas encode, both `createImageBitmap` paths, an actual blob write
+and read-back, storage quota — and prints a copyable report with no photos or
+passcodes in it. Use it before guessing.
+
 ### How submitting is authorised
 
 Submitters hold a **shared passcode**, not a GitHub token. The token lives in a
