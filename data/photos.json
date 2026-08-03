@@ -108,6 +108,42 @@
     ]
   },
   {
+    "id": "2026-06-13-6w53",
+    "file": "photos/2026-06-13-6w53.jpg",
+    "thumb": "photos/thumbs/2026-06-13-6w53.jpg",
+    "lat": 51.543438,
+    "lng": -0.024154,
+    "locationSource": "search",
+    "borough": "Hackney",
+    "flavours": [
+      "Tequila 'Rita"
+    ],
+    "caption": "",
+    "spottedAt": "2026-06-13T21:43:00.000Z",
+    "spotter": "Juju",
+    "addedAt": "2026-08-03T19:40:07.866Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
+    "id": "2026-06-06-o0ov",
+    "file": "photos/2026-06-06-o0ov.jpg",
+    "thumb": "photos/thumbs/2026-06-06-o0ov.jpg",
+    "lat": 51.502881,
+    "lng": 0.022332,
+    "locationSource": "search",
+    "borough": "Newham",
+    "flavours": [
+      "Berry Cherry Limeade"
+    ],
+    "caption": "",
+    "spottedAt": "2026-06-06T14:53:00.000Z",
+    "spotter": "Juju",
+    "addedAt": "2026-08-03T19:40:07.866Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
     "id": "2026-05-30-nvh5",
     "file": "photos/2026-05-30-nvh5.jpg",
     "thumb": "photos/thumbs/2026-05-30-nvh5.jpg",
@@ -160,6 +196,24 @@
     "flavours": [
       "Strawberry 'Rita"
     ]
+  },
+  {
+    "id": "2026-05-08-6du4",
+    "file": "photos/2026-05-08-6du4.jpg",
+    "thumb": "photos/thumbs/2026-05-08-6du4.jpg",
+    "lat": 51.510566,
+    "lng": -0.115686,
+    "locationSource": "search",
+    "borough": "Westminster",
+    "flavours": [
+      "Strawberry 'Rita"
+    ],
+    "caption": "",
+    "spottedAt": "2026-05-08T18:36:00.000Z",
+    "spotter": "Juju",
+    "addedAt": "2026-08-03T19:40:07.866Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
   },
   {
     "id": "2026-05-02-6o4b",
