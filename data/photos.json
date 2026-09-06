@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-09-02-sev4",
+    "file": "photos/2026-09-02-sev4.jpg",
+    "thumb": "photos/thumbs/2026-09-02-sev4.jpg",
+    "lat": 51.502767,
+    "lng": -0.224587,
+    "locationSource": "search",
+    "borough": "Hammersmith and Fulham",
+    "flavours": [
+      "Berry Cherry Limeade"
+    ],
+    "caption": "",
+    "spottedAt": "2026-09-02T19:51:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-09-06T07:05:53.748Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
     "id": "2026-08-31-lacl",
     "file": "photos/2026-08-31-lacl.jpg",
     "thumb": "photos/thumbs/2026-08-31-lacl.jpg",
