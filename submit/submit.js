@@ -298,7 +298,7 @@ function ensureMap() {
   const map = L.map('map', { center: LONDON, zoom: 11, zoomControl: true });
   state.map = map;
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png?key=cb1_339v_1_83b239a58515701964713d9c', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     subdomains: 'abcd', maxZoom: 19,
   }).addTo(map);
