@@ -1,5 +1,23 @@
 [
   {
+    "id": "2026-09-20-d1i5",
+    "file": "photos/2026-09-20-d1i5.jpg",
+    "thumb": "photos/thumbs/2026-09-20-d1i5.jpg",
+    "lat": 51.51551,
+    "lng": -0.121828,
+    "locationSource": "manual",
+    "borough": "Camden",
+    "flavours": [
+      "Strawberry 'Rita"
+    ],
+    "caption": "On the way to Caravan",
+    "spottedAt": "2026-09-20T10:55:00.000Z",
+    "spotter": "Mayor",
+    "addedAt": "2026-09-20T10:57:46.164Z",
+    "publishToInstagram": false,
+    "instagramPostId": null
+  },
+  {
     "id": "2026-09-02-sev4",
     "file": "photos/2026-09-02-sev4.jpg",
     "thumb": "photos/thumbs/2026-09-02-sev4.jpg",
